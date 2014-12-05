@@ -9,9 +9,9 @@
         <script src="lib/cytoscape.js"></script>
         <script src="lib/json-patch-duplex.min.js"></script>
         <script src="lib/web_socket.js"></script>
-        
+
         <link type="text/css" rel="stylesheet" href="lib/materialize/css/materialize.min.css"  media="screen,projection"/>
-    
+
         <script type="text/javascript" src="lib/materialize/js/materialize.min.js"></script>
         <style>
             body {
@@ -38,13 +38,14 @@
             #widgets {
                 pointer-events: none;
             }
-            #widgets div {
+            .widget {
+                pointer-events: none;
+            }
+
+            .widget * {
                 pointer-events: all;
             }
-            
-            .widget {
-            }
-            .widget textarea {
+            .editable {
                 width: 95%;
                 background-color: white;
                 margin: 4px;
@@ -54,19 +55,19 @@
 
     </head>
     <body>
-        
+
         <nav id='menubar'>
-          <div class="nav-wrapper light-green darken-2">
-            <!--<a href="#" class="brand-logo">Logo</a>-->
-            <ul id="nav-mobile" class="right side-nav">
-              <li><a href="sass.html">Sass</a></li>
-              <li><a href="components.html">Components</a></li>
-              <li><a href="javascript.html">JavaScript</a></li>
-            </ul>
-            <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a>
-          </div>
+            <div class="nav-wrapper light-green darken-2">
+                <!--<a href="#" class="brand-logo">Logo</a>-->
+                <ul id="nav-mobile" class="right side-nav">
+                    <li><a href="sass.html">Sass</a></li>
+                    <li><a href="components.html">Components</a></li>
+                    <li><a href="javascript.html">JavaScript</a></li>
+                </ul>
+                <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a>
+            </div>
         </nav>
-        
+
         <div id="graph">
             <!-- cytoscape render here -->
         </div>
@@ -77,47 +78,10 @@
 
     <script>
 
-        var websocketPort = 10000;
-        
-        $(document).ready(function () {
-
-            var url = (window.location + '');
-            url = url.substring(url.indexOf('://')+3);
-            
-            window.ws = new WebSocket('ws://' + url + 'ws');
-            ws.onopen = function () {
-                //addIO("Connected.");
-                //addIO();
-                console.log('Websockets connected');
-                
-                commit();
-                
-                this.opened = true;
-                
-            };
-            ws.onmessage = function (e) {
-                /*e.data.split("\n").forEach(function (l) {
-                    output(l, true);
-                });*/
-                console.log('IN: ', e);
-            };
-            ws.onclose = function () {
-                //already disconnected?
-                if (!this.opened)
-                    return;
-                
-                this.opened = false;
-                
-                console.log("Websockets disconnected");
-                
-                //attempt reconnect?
-            };
-
-
-        });
 
 
         var session = {
+            id: 'defaultClient' + parseInt(Math.random()*10000),
             style: [
                 {
                     selector: 'node',
@@ -159,23 +123,24 @@
                     {data: {id: 'a', parent: 'b'}},
                     {data: {id: 'b'}},
                     {data: {id: 'c', parent: 'b'}},
-                    {data: {id: 'd',                         
-                        widget:  {
-                            html: '<iframe width="600px" height="600px" src="http://nar.systems"></iframe><br/><button>x</button>',
-                            scale: 1/600.0,
-                            minPixels: 2,
-                            padding: 0.1
-                        }  
-                    }},
+                    {data: {id: 'd',
+                            widget: {
+                                html: '<h1>=D</h1>',
+                                //html: '<iframe width="600px" height="600px" src="http://en.wikipedia.org/wiki/MaidSafe"></iframe><br/><button>x</button>',
+                                scale: 1 / 600.0,
+                                minPixels: 2,
+                                padding: 0.1
+                            }
+                        }},
                     {data: {id: 'e',
-                        widget:  {
-                            html: '<div style="background-color: orange; border: 2px solid black;"><textarea>WTF</textarea></div>',
-                            style: { width: '128px', height: '32px' },
-                            scale: 1/128.0,
-                            minPixels: 32,
-                            padding: 0.25
-                        }  
-                    }},
+                            widget: {
+                                html: '<div style="background-color: orange; border: 2px solid black;"><div contenteditable="true" class="editable">WTF</div><br/><button>OK</button></div>',
+                                style: {width: '300px', height: '260px'},
+                                scale: 1 / 300.0,
+                                minPixels: 32,
+                                padding: 0.25
+                            }
+                        }},
                     {data: {id: 'f', parent: 'e'}}
                 ],
                 edges: [
@@ -184,15 +149,15 @@
 
                 ]
             }
-        }, 
-            prevSession = { };
-        
+        },
+        prevSession = {};
+
         function _synchSession() {
-            
+
             //get positions
-            var eles = cy.elements();
-            var P = { };
-            for( var i = 0; i < eles.length; i++ ){
+            var eles = window.cy.elements();
+            var P = {};
+            for (var i = 0; i < eles.length; i++) {
                 var ele = eles[i];
                 //console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
                 var p = ele.position();
@@ -200,24 +165,24 @@
                 if (!isFinite(x))
                     continue;
                 var y = p.y;
-                P[ele.id()] = [ parseInt(x), parseInt(y) ];
+                P[ele.id()] = [parseInt(x), parseInt(y)];
             }
             session.positions = P;
-            
+
             //https://github.com/Starcounter-Jack/Fast-JSON-Patch
             var diff = jsonpatch.compare(prevSession, session);
-            
-            prevSession = jQuery.extend(true, {}, session);            
+
+            prevSession = jQuery.extend(true, {}, session);
 
             if (diff.length > 0) {
-                var diffString = JSON.stringify(diff);
+                var diffString = JSON.stringify(['p',session.id,diff]);
                 console.log('session diff', diffString.length, diffString);
                 ws.send(diffString);
             }
-            
+
         }
         var synchSession = _.throttle(_synchSession, 1500);
-        
+
         function commit() {
             if (ws.opened) {
                 synchSession();
@@ -225,23 +190,22 @@
                 //nothing
             }
         }
-        
+
 
 
         $('#graph').cytoscape({
-            
             style: session.style,
-            
             elements: session.elements,
-            
             layout: {
                 name: 'cose',
                 padding: 5
             },
-            ready: function () {
+            ready: function () {                
                 window.cy = this;
-                initEvents(this);                
                 
+                initWebSocket();
+                initEvents(this);
+
             },
             // initial viewport state:
             zoom: 1,
@@ -254,8 +218,7 @@
             panningEnabled: true,
             userPanningEnabled: true,
             selectionType: 'single',
-            boxSelectionEnabled: false,   
-      
+            boxSelectionEnabled: false,
             autolock: false,
             autoungrabify: false,
             autounselectify: false,
@@ -269,7 +232,7 @@
             wheelSensitivity: 1,
             //pixelRatio: 1
             initrender: function (evt) { /* ... */
-                
+
             }
             //renderer: { /* ... */},
         });
@@ -279,63 +242,63 @@
 
             //http://js.cytoscape.org/#events/collection-events
             //
-            cv.on('data position select unselect add remove grab drag style', function(evt){
+            cv.on('data position select unselect add remove grab drag style', function (evt) {
                 /*console.log( evt.data.foo ); // 'bar'
+                 
+                 var node = evt.cyTarget;
+                 console.log( 'tapped ' + node.id() );*/
 
-                var node = evt.cyTarget;
-                console.log( 'tapped ' + node.id() );*/
-                
                 var target = evt.cyTarget;
                 if (widget(target))
                     queueWidgetUpdate(target);
 
                 commit();
             });
-        
+
             var widgetsToUpdate = {};
-            
+
 //            var baseRedraw = cy._private.renderer.redraw;
 //            cy._private.renderer.redraw = function(options) {
 //
 //                
 //                baseRedraw.apply(this, arguments);
 //            };
-            
+
             var baseDrawNode = cy._private.renderer.drawNode;
-            cy._private.renderer.drawNode = function(context, node, drawOverlayInstead) {
+            cy._private.renderer.drawNode = function (context, node, drawOverlayInstead) {
                 baseDrawNode.apply(this, arguments);
-                
+
                 if (widget(node)) {
                     queueWidgetUpdate(node);
                 }
             };
-            
+
             function widget(node) {
                 return node.data().widget;
             }
-            
+
             function queueWidgetUpdate(node) {
                 widgetsToUpdate[node.id()] = node;
-                updateWidgets();                
+                updateWidgets();
             }
-                        
-            var updateWidgets = _.throttle(function() {
-                    
-                var nextWidgetsToUpdate = _.values(widgetsToUpdate);                    
-                        
+
+            var updateWidgets = _.throttle(function () {
+
+                var nextWidgetsToUpdate = _.values(widgetsToUpdate);
+
                 if (nextWidgetsToUpdate.length > 0) {
-                    widgetsToUpdate = { };
-                    
-                    setTimeout(function() {
-                        
+                    widgetsToUpdate = {};
+
+                    setTimeout(function () {
+
                         for (var i = 0; i < nextWidgetsToUpdate.length; i++) {
-                            var node = nextWidgetsToUpdate[i]; 
+                            var node = nextWidgetsToUpdate[i];
                             updateNodeWidget(node);
                         }
-                        
+
                     }, 0);
                 }
-                
+
             }, 10);
 
             var widgets = new WeakMap();
@@ -346,11 +309,11 @@
 
 
                 if (!w) {
-                    
-                    var style = widget.style || { };
+
+                    var style = widget.style || {};
                     style.position = 'fixed';
                     style.transformOrigin = '0 0';
-                    
+
                     w = $('<div></div>').addClass('widget').css(style).appendTo('#widgets');
                     w.html(widget.html);
 
@@ -360,19 +323,19 @@
 
                 var pos = node.renderedPosition();
                 var pw = node.renderedWidth();
-                var ph = node.renderedHeight();         
-                var paddingScale = (widget.padding||0);
-                
+                var ph = node.renderedHeight();
+                var paddingScale = (widget.padding || 0);
+
                 var ps = Math.min(pw, ph) * (1.0 - paddingScale);
-                
+
                 var widgetScale = widget.scale;
-                var wx = ps*widgetScale;        
-                
+                var wx = ps * widgetScale;
+
                 var nextCSS = {};
                 if (widget.minPixels) {
                     var hidden = 'none' === w.css('display');
-                    
-                    if (ps < widget.minPixels) {                        
+
+                    if (ps < widget.minPixels) {
                         if (!hidden) {
                             w.css({display: 'none'});
                             return;
@@ -384,12 +347,15 @@
                         }
                     }
                 }
-                
+
                 var mata, matb, matc, matd, mate, matf;
-                mata = wx; matb = 0; matc = 0; matd = wx; 
-                mate = parseInt(pos.x-pw/2 + pw * paddingScale/2.0 ) ; 
-                matf = parseInt(pos.y-ph/2 + ph * paddingScale/2.0 );
-                nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' +matc + ',' +matd + ',' +mate + ',' +matf + ')';
+                mata = wx;
+                matb = 0;
+                matc = 0;
+                matd = wx;
+                mate = parseInt(pos.x - pw / 2 + pw * paddingScale / 2.0);
+                matf = parseInt(pos.y - ph / 2 + ph * paddingScale / 2.0);
+                nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' + matc + ',' + matd + ',' + mate + ',' + matf + ')';
                 w.css(nextCSS);
             }
 
@@ -402,8 +368,51 @@
 //                
 //            }        
         }
-        
-        
-        
+
+
+        function initWebSocket() {
+            $(document).ready(function () {
+
+                var url = (window.location + '');
+                url = url.substring(url.indexOf('://') + 3);
+
+                window.ws = new WebSocket('ws://' + url + 'ws');
+                ws.onopen = function () {
+
+                    this.opened = true;
+
+                    console.log('websocket connected');
+
+                    commit();
+
+
+                };
+                ws.onmessage = function (e) {
+                    /*e.data.split("\n").forEach(function (l) {
+                        output(l, true);
+                    });*/
+
+                    console.log('websocket in', e.data);
+
+                };
+                ws.onclose = function () {
+                    //already disconnected?
+                    if (!this.opened)
+                        return;
+
+                    this.opened = false;
+
+                    console.log("Websocket disconnected");
+
+                    //attempt reconnect?
+                };
+                ws.onerror = function(e) {
+                    console.log("Websocket error", e);
+                };
+    //
+            });
+        }
+
+
     </script>
 </html>
