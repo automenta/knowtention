@@ -9,7 +9,10 @@
         <script src="lib/cytoscape.js"></script>
         <script src="lib/json-patch-duplex.min.js"></script>
         <script src="lib/web_socket.js"></script>
-
+        
+        <link type="text/css" rel="stylesheet" href="lib/materialize/css/materialize.min.css"  media="screen,projection"/>
+    
+        <script type="text/javascript" src="lib/materialize/js/materialize.min.js"></script>
         <style>
             body {
                 margin: 0;
@@ -18,10 +21,58 @@
                 border: 0;
                 padding: 0;    
             }
+            #menubar {
+                position: fixed;
+                top:0;
+                right: 0;
+                opacity:0.95;
+                z-index: 10000;
+            }
+            #graph, #widgets {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;                    
+            }
+            #widgets {
+                pointer-events: none;
+            }
+            #widgets div {
+                pointer-events: all;
+            }
+            
+            .widget {
+            }
+            .widget textarea {
+                width: 95%;
+                background-color: white;
+                margin: 4px;
+                opacity: 0.9;
+            }
         </style>
 
     </head>
     <body>
+        
+        <nav id='menubar'>
+          <div class="nav-wrapper light-green darken-2">
+            <!--<a href="#" class="brand-logo">Logo</a>-->
+            <ul id="nav-mobile" class="right side-nav">
+              <li><a href="sass.html">Sass</a></li>
+              <li><a href="components.html">Components</a></li>
+              <li><a href="javascript.html">JavaScript</a></li>
+            </ul>
+            <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a>
+          </div>
+        </nav>
+        
+        <div id="graph">
+            <!-- cytoscape render here -->
+        </div>
+        <div id="widgets">
+            <!-- cytoscape render here -->
+        </div>
     </body>
 
     <script>
@@ -71,7 +122,7 @@
                 {
                     selector: 'node',
                     css: {
-                        'content': 'data(id)',
+                        'content': 'data(name)',
                         'text-valign': 'center',
                         'text-halign': 'center'
                     }
@@ -79,10 +130,10 @@
                 {
                     selector: '$node > node',
                     css: {
-                        'padding-top': '10px',
-                        'padding-left': '10px',
-                        'padding-bottom': '10px',
-                        'padding-right': '10px',
+                        'padding-top': '5px',
+                        'padding-left': '5px',
+                        'padding-bottom': '5px',
+                        'padding-right': '5px',
                         'text-valign': 'top',
                         'text-halign': 'center'
                     }
@@ -108,8 +159,23 @@
                     {data: {id: 'a', parent: 'b'}},
                     {data: {id: 'b'}},
                     {data: {id: 'c', parent: 'b'}},
-                    {data: {id: 'd'}},
-                    {data: {id: 'e'}},
+                    {data: {id: 'd',                         
+                        widget:  {
+                            html: '<iframe width="600px" height="600px" src="http://nar.systems"></iframe><br/><button>x</button>',
+                            scale: 1/600.0,
+                            minPixels: 2,
+                            padding: 0.1
+                        }  
+                    }},
+                    {data: {id: 'e',
+                        widget:  {
+                            html: '<div style="background-color: orange; border: 2px solid black;"><textarea>WTF</textarea></div>',
+                            style: { width: '128px', height: '32px' },
+                            scale: 1/128.0,
+                            minPixels: 32,
+                            padding: 0.25
+                        }  
+                    }},
                     {data: {id: 'f', parent: 'e'}}
                 ],
                 edges: [
@@ -162,7 +228,7 @@
         
 
 
-        $('body').cytoscape({
+        $('#graph').cytoscape({
             
             style: session.style,
             
@@ -187,8 +253,9 @@
             userZoomingEnabled: true,
             panningEnabled: true,
             userPanningEnabled: true,
-            selectionType: 'single', //(isTouchDevice ? 'additive' : 'single'),
-
+            selectionType: 'single',
+            boxSelectionEnabled: false,   
+      
             autolock: false,
             autoungrabify: false,
             autounselectify: false,
@@ -197,7 +264,7 @@
             styleEnabled: true,
             hideEdgesOnViewport: false,
             hideLabelsOnViewport: false,
-            textureOnViewport: true,
+            textureOnViewport: false, //true = higher performance, lower quality
             motionBlur: true,
             wheelSensitivity: 1,
             //pixelRatio: 1
@@ -212,17 +279,131 @@
 
             //http://js.cytoscape.org/#events/collection-events
             //
-            cv.on('data position select unselect add remove grab style', function(evt){
+            cv.on('data position select unselect add remove grab drag style', function(evt){
                 /*console.log( evt.data.foo ); // 'bar'
 
                 var node = evt.cyTarget;
                 console.log( 'tapped ' + node.id() );*/
+                
+                var target = evt.cyTarget;
+                if (widget(target))
+                    queueWidgetUpdate(target);
 
                 commit();
             });
+        
+            var widgetsToUpdate = {};
             
+//            var baseRedraw = cy._private.renderer.redraw;
+//            cy._private.renderer.redraw = function(options) {
+//
+//                
+//                baseRedraw.apply(this, arguments);
+//            };
             
+            var baseDrawNode = cy._private.renderer.drawNode;
+            cy._private.renderer.drawNode = function(context, node, drawOverlayInstead) {
+                baseDrawNode.apply(this, arguments);
+                
+                if (widget(node)) {
+                    queueWidgetUpdate(node);
+                }
+            };
+            
+            function widget(node) {
+                return node.data().widget;
+            }
+            
+            function queueWidgetUpdate(node) {
+                widgetsToUpdate[node.id()] = node;
+                updateWidgets();                
+            }
+                        
+            var updateWidgets = _.throttle(function() {
+                    
+                var nextWidgetsToUpdate = _.values(widgetsToUpdate);                    
+                        
+                if (nextWidgetsToUpdate.length > 0) {
+                    widgetsToUpdate = { };
+                    
+                    setTimeout(function() {
+                        
+                        for (var i = 0; i < nextWidgetsToUpdate.length; i++) {
+                            var node = nextWidgetsToUpdate[i]; 
+                            updateNodeWidget(node);
+                        }
+                        
+                    }, 0);
+                }
+                
+            }, 10);
+
+            var widgets = new WeakMap();
+
+            function updateNodeWidget(node) {
+                var widget = node.data().widget; //html string
+                var w = widgets.get(node);
+
+
+                if (!w) {
+                    
+                    var style = widget.style || { };
+                    style.position = 'fixed';
+                    style.transformOrigin = '0 0';
+                    
+                    w = $('<div></div>').addClass('widget').css(style).appendTo('#widgets');
+                    w.html(widget.html);
+
+                    widgets.set(node, w);
+                }
+
+
+                var pos = node.renderedPosition();
+                var pw = node.renderedWidth();
+                var ph = node.renderedHeight();         
+                var paddingScale = (widget.padding||0);
+                
+                var ps = Math.min(pw, ph) * (1.0 - paddingScale);
+                
+                var widgetScale = widget.scale;
+                var wx = ps*widgetScale;        
+                
+                var nextCSS = {};
+                if (widget.minPixels) {
+                    var hidden = 'none' === w.css('display');
+                    
+                    if (ps < widget.minPixels) {                        
+                        if (!hidden) {
+                            w.css({display: 'none'});
+                            return;
+                        }
+                    }
+                    else {
+                        if (hidden) {
+                            nextCSS['display'] = 'block';
+                        }
+                    }
+                }
+                
+                var mata, matb, matc, matd, mate, matf;
+                mata = wx; matb = 0; matc = 0; matd = wx; 
+                mate = parseInt(pos.x-pw/2 + pw * paddingScale/2.0 ) ; 
+                matf = parseInt(pos.y-ph/2 + ph * paddingScale/2.0 );
+                nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' +matc + ',' +matd + ',' +mate + ',' +matf + ')';
+                w.css(nextCSS);
+            }
+
+
+//            function scaleAndTranslate( _element , _x , _y, wx, wy )  {
+//                
+//                var mat = _element.style.transform.baseVal.getItem(0).matrix;
+//                // [1 0 0 1 tx ty], 
+//                mat.a = wx; mat.b = 0; mat.c = 0; mat.d = wy; mat.e = _x; mat.f = _y;
+//                
+//            }        
         }
+        
+        
         
     </script>
 </html>
