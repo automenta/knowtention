@@ -1,0 +1,228 @@
+<html>
+    <head>
+        <title>?</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+        <script src="lib/jquery-2.1.1.min.js"></script>
+        <script src="lib/lodash.min.js"></script>
+        <script src="lib/cytoscape.js"></script>
+        <script src="lib/json-patch-duplex.min.js"></script>
+        <script src="lib/web_socket.js"></script>
+
+        <style>
+            body {
+                margin: 0;
+                width: 100%;
+                height: 100%;
+                border: 0;
+                padding: 0;    
+            }
+        </style>
+
+    </head>
+    <body>
+    </body>
+
+    <script>
+
+        var websocketPort = 10000;
+        
+        $(document).ready(function () {
+
+            var url = (window.location + '');
+            url = url.substring(url.indexOf('://')+3);
+            
+            window.ws = new WebSocket('ws://' + url + 'ws');
+            ws.onopen = function () {
+                //addIO("Connected.");
+                //addIO();
+                console.log('Websockets connected');
+                
+                commit();
+                
+                this.opened = true;
+                
+            };
+            ws.onmessage = function (e) {
+                /*e.data.split("\n").forEach(function (l) {
+                    output(l, true);
+                });*/
+                console.log('IN: ', e);
+            };
+            ws.onclose = function () {
+                //already disconnected?
+                if (!this.opened)
+                    return;
+                
+                this.opened = false;
+                
+                console.log("Websockets disconnected");
+                
+                //attempt reconnect?
+            };
+
+
+        });
+
+
+        var session = {
+            style: [
+                {
+                    selector: 'node',
+                    css: {
+                        'content': 'data(id)',
+                        'text-valign': 'center',
+                        'text-halign': 'center'
+                    }
+                },
+                {
+                    selector: '$node > node',
+                    css: {
+                        'padding-top': '10px',
+                        'padding-left': '10px',
+                        'padding-bottom': '10px',
+                        'padding-right': '10px',
+                        'text-valign': 'top',
+                        'text-halign': 'center'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    css: {
+                        'target-arrow-shape': 'triangle'
+                    }
+                },
+                {
+                    selector: ':selected',
+                    css: {
+                        'background-color': 'black',
+                        'line-color': 'black',
+                        'target-arrow-color': 'black',
+                        'source-arrow-color': 'black'
+                    }
+                }
+            ],
+            elements: {
+                nodes: [
+                    {data: {id: 'a', parent: 'b'}},
+                    {data: {id: 'b'}},
+                    {data: {id: 'c', parent: 'b'}},
+                    {data: {id: 'd'}},
+                    {data: {id: 'e'}},
+                    {data: {id: 'f', parent: 'e'}}
+                ],
+                edges: [
+                    {data: {id: 'ad', source: 'a', target: 'd'}},
+                    {data: {id: 'eb', source: 'e', target: 'b'}}
+
+                ]
+            }
+        }, 
+            prevSession = { };
+        
+        function _synchSession() {
+            
+            //get positions
+            var eles = cy.elements();
+            var P = { };
+            for( var i = 0; i < eles.length; i++ ){
+                var ele = eles[i];
+                //console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
+                var p = ele.position();
+                var x = p.x;
+                if (!isFinite(x))
+                    continue;
+                var y = p.y;
+                P[ele.id()] = [ parseInt(x), parseInt(y) ];
+            }
+            session.positions = P;
+            
+            //https://github.com/Starcounter-Jack/Fast-JSON-Patch
+            var diff = jsonpatch.compare(prevSession, session);
+            
+            prevSession = jQuery.extend(true, {}, session);            
+
+            if (diff.length > 0) {
+                var diffString = JSON.stringify(diff);
+                console.log('session diff', diffString.length, diffString);
+                ws.send(diffString);
+            }
+            
+        }
+        var synchSession = _.throttle(_synchSession, 1500);
+        
+        function commit() {
+            if (ws.opened) {
+                synchSession();
+            } else {
+                //nothing
+            }
+        }
+        
+
+
+        $('body').cytoscape({
+            
+            style: session.style,
+            
+            elements: session.elements,
+            
+            layout: {
+                name: 'cose',
+                padding: 5
+            },
+            ready: function () {
+                window.cy = this;
+                initEvents(this);                
+                
+            },
+            // initial viewport state:
+            zoom: 1,
+            pan: {x: 0, y: 0},
+            // interaction options:
+            minZoom: 1e-50,
+            maxZoom: 1e50,
+            zoomingEnabled: true,
+            userZoomingEnabled: true,
+            panningEnabled: true,
+            userPanningEnabled: true,
+            selectionType: 'single', //(isTouchDevice ? 'additive' : 'single'),
+
+            autolock: false,
+            autoungrabify: false,
+            autounselectify: false,
+            // rendering options:
+            headless: false,
+            styleEnabled: true,
+            hideEdgesOnViewport: false,
+            hideLabelsOnViewport: false,
+            textureOnViewport: true,
+            motionBlur: true,
+            wheelSensitivity: 1,
+            //pixelRatio: 1
+            initrender: function (evt) { /* ... */
+                
+            }
+            //renderer: { /* ... */},
+        });
+
+        function initEvents(cv) {
+            //events
+
+            //http://js.cytoscape.org/#events/collection-events
+            //
+            cv.on('data position select unselect add remove grab style', function(evt){
+                /*console.log( evt.data.foo ); // 'bar'
+
+                var node = evt.cyTarget;
+                console.log( 'tapped ' + node.id() );*/
+
+                commit();
+            });
+            
+            
+        }
+        
+    </script>
+</html>
