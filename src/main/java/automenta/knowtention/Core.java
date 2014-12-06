@@ -5,15 +5,20 @@
  */
 package automenta.knowtention;
 
-import automenta.knowtention.model.JSONObjectMetrics;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.github.fge.jsonpatch.JsonPatch;
+import com.github.fge.jsonpatch.JsonPatchOperation;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
@@ -66,4 +71,87 @@ public class Core extends EventEmitter {
         }
     }
 
+    /** adapter for JSONPatch+ */
+    static JsonPatch getPatch(ArrayNode patch) throws IOException {
+        JsonNodeFactory f = new JsonNodeFactory(false);
+
+        //System.out.println("min: " + patch.toString());
+        
+        /*
+        
+            JSONPatch+
+        
+            [ [ <op>, <param1>[, <param2> ], .... ]
+
+            + add
+            - remove
+            * copy
+            / move
+            = replace
+            ? test
+        
+            [
+              { "op": "test", "path": "/a/b/c", "value": "foo" },
+              { "op": "remove", "path": "/a/b/c" },
+              { "op": "add", "path": "/a/b/c", "value": [ "foo", "bar" ] },
+              { "op": "replace", "path": "/a/b/c", "value": 42 },
+              { "op": "move", "from": "/a/b/c", "path": "/a/b/d" },
+              { "op": "copy", "from": "/a/b/d", "path": "/a/b/e" }
+            ]
+        */
+                
+        int i = 0;
+        for (JsonNode k : patch) {
+            JsonNode nextOp = k;
+            ObjectNode m = null;
+            if (k.isArray()) {
+                String op = k.get(0).textValue();
+                switch (op.charAt(0)) {
+                    case '+':
+                        m = new ObjectNode(f);
+                        m.put("op", "add");
+                        m.put("path", k.get(1));
+                        m.put("value", k.get(2));
+                        break;
+                    case '-':
+                        m = new ObjectNode(f);
+                        m.put("op", "remove");
+                        m.put("path", k.get(1));
+                        break;
+                    case '*':
+                        m = new ObjectNode(f);
+                        m.put("op", "copy");
+                        m.put("from", k.get(1));
+                        m.put("path", k.get(2));
+                        break;
+                    case '/':
+                        m = new ObjectNode(f);
+                        m.put("op", "move");
+                        m.put("from", k.get(1));
+                        m.put("path", k.get(2));
+                        break;
+                    case '?':
+                        m = new ObjectNode(f);
+                        m.put("op", "test");
+                        m.put("path", k.get(1));
+                        m.put("value", k.get(2));
+                        break;
+                    case '=':
+                        m = new ObjectNode(f);
+                        m.put("op", "replace");
+                        m.put("path", k.get(1));
+                        m.put("value", k.get(2));
+                        break;    
+                }
+            }
+            if (m!=null)
+                patch.set(i++, m);
+        }
+        
+        //System.out.println("standard: " + patch.toString());
+        
+        return JsonPatch.fromJson(patch);
+    }
+
+    
 }

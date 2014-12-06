@@ -84,7 +84,8 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
                                 ArrayNode patchJson = (ArrayNode) j.get(2);
                                 try {
 
-                                    JsonPatch patch = JsonPatch.fromJson(patchJson);
+                                    
+                                    JsonPatch patch = Core.getPatch(patchJson);
                                     c.applyPatch(patch);
 
                                 } catch (Exception e) {                                   

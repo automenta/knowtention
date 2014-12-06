@@ -7,71 +7,62 @@
         <script src="lib/jquery-2.1.1.min.js"></script>
         <script src="lib/lodash.min.js"></script>
         <script src="lib/cytoscape.js"></script>
-        <script src="lib/json-patch-duplex.min.js"></script>
+        <!-- <script src="lib/json-patch-duplex.min.js"></script> --> 
+        <script src="lib/jsonsynch.min.js"></script>
         <script src="lib/web_socket.js"></script>
-        
+
         <script src="lib/html2json/html2json.js"></script>
         <script src="lib/html2json/htmlparser.js"></script>
 
-        <link type="text/css" rel="stylesheet" href="lib/materialize/css/materialize.min.css"  media="screen,projection"/>
+        <link type="text/css" rel="stylesheet" href="lib/foundation/foundation.min.css"  media="screen,projection"/>
+        <script type="text/javascript" src="lib/foundation/foundation.min.js"></script>
 
-        <script type="text/javascript" src="lib/materialize/js/materialize.min.js"></script>
-        <style>
-            body {
-                margin: 0;
-                width: 100%;
-                height: 100%;
-                border: 0;
-                padding: 0;    
-            }
-            #menubar {
-                position: fixed;
-                top:0;
-                right: 0;
-                opacity:0.95;
-                z-index: 10000;
-            }
-            #graph, #widgets {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;                    
-            }
-            #widgets {
-                pointer-events: none;
-            }
-            .widget {
-                pointer-events: none;
-            }
+        <link type="text/css" rel="stylesheet" href="spacegraph.css"/>
+        <link type="text/css" rel="stylesheet" href="spacegraph.bright.css"/>
 
-            .widget * {
-                pointer-events: all;
-            }
-            .editable {
-                width: 95%;
-                background-color: white;
-                margin: 4px;
-                opacity: 0.9;
-            }
-        </style>
+        <script src="lib/modernizr.js"></script>
+        <script src="lib/fastclick.js"></script>
+
+        <script src="core.js"></script>
+        <script src="websocket.js"></script>
+        <script src="example_channels.js"></script>
 
     </head>
     <body>
+        <nav class="top-bar" data-topbar role="navigation">
+            <ul class="title-area">
+                <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
+                <li class="toggle-topbar menu-icon"><a href="#"><span>[~]</span></a></li>
+            </ul>
 
-        <nav id='menubar'>
-            <div class="nav-wrapper light-green darken-2">
-                <!--<a href="#" class="brand-logo">Logo</a>-->
-                <ul id="nav-mobile" class="right side-nav">
-                    <li><a href="sass.html">What</a></li>
-                    <li><a href="sass.html">Who</a></li>
-                    <li><a href="sass.html">Where</a></li>
-                    <li><a href="components.html">When</a></li>
-                    <li><a href="javascript.html">Why</a></li>
+            <section class="top-bar-section">
+                <!-- Right Nav Section -->
+                <ul class="right">
+                    <li><a href="#what">What</a></li>
+                    <li><a href="#who">Who</a></li>
+                    <li><a href="#where">Where</a></li>
+                    <li><a href="#when">When</a></li>
+                    <li><a href="#why">Why</a></li>
+
+                    <li class="has-dropdown">
+                        <a href="#">Now</a>        
+                        <ul class="dropdown">
+                            <li><a href="#">Be</a></li>
+                            <li><a href="#">Do</a></li>                            
+                            <li><a href="#">Know</a></li>
+                            <!--<li class="active"><a href="#">Active link in dropdown</a></li>-->
+                        </ul>
+                    </li>
                 </ul>
-                <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a>
-            </div>
+
+                <!-- Left Nav Section -->
+                <ul class="left">
+                    <!--<li><input type="text"></input></li>-->
+                </ul>
+            </section>
         </nav>
+
+
 
         <div id="graph">
             <!-- cytoscape render here -->
@@ -79,100 +70,26 @@
         <div id="widgets">
             <!-- cytoscape render here -->
         </div>
+
+
+        
+        <script>$(document).foundation();</script>
     </body>
 
     <script>
 
+        var channel = function() {
+            return {
+                
+            };
+        };
+
+        var channel = newExampleChannel1();        
+        var channelPrev = {};
 
 
-        var session = {
-            id: 'defaultClient' + parseInt(Math.random()*10000),
-            style: [
-                {
-                    selector: 'node',
-                    css: {
-                        'content': 'data(name)',
-                        'text-valign': 'center',
-                        'text-halign': 'center',
-                        'width': 'data(width)',
-                        'height': 'data(height)'
-                    }
-                },
-                {
-                    selector: '$node > node',
-                    css: {
-                        'padding-top': '2px',
-                        'padding-left': '2px',
-                        'padding-bottom': '2px',
-                        'padding-right': '2px',
-                        'text-valign': 'top',
-                        'text-halign': 'center'
-                    }
-                },
-                {
-                    selector: 'edge',
-                    css: {
-                        'target-arrow-shape': 'triangle'
-                    }
-                },                
-                {
-                    selector: ':selected',
-                    css: {
-                        //'background-color': 'black',
-                        'line-color': 'black',
-                        'target-arrow-color': 'black',
-                        'source-arrow-color': 'black'
-                    }
-                }
-            ],
-            elements: {
-                nodes: [
-                    {data: {id: 'a', parent: 'b'}},
-                    {data: {id: 'b'}},
-                    {data: {id: 'c', parent: 'b'}},
-                    {data: {id: 'd',
-                            height: 128,
-                            width: 128,
-                            widget: {
-                                //html: '<h1>=D</h1>',
-                                html: '<iframe width="600px" height="600px" src="http://enenews.com"></iframe><br/><button>x</button>',
-                                scale: 1 / 600.0,
-                                minPixels: 2,
-                                padding: 0.1
-                            }
-                        }},
-                    {data: {id: 'e',
-                            widget: {
-                                html: '<div style="background-color: orange; border: 2px solid black;"><div contenteditable="true" class="editable">WTF</div><br/><button>OK</button></div>',
-                                style: {width: '300px', height: '260px'},
-                                scale: 1 / 300.0,
-                                minPixels: 32,
-                                padding: 0.25
-                            }
-                        }},
-                    {data: {id: 'e1',
-                            width: 64,
-                            height: 64,
-                            widget: {
-                                html: '<div style="background-color: green; border: 2px solid black;"><div contenteditable="true" class="editable">OR(AND(F,B),Z) => X</div><br/><button>OK</button></div>',
-                                style: {width: '300px', height: '260px'},
-                                scale: 1 / 300.0,
-                                minPixels: 32,
-                                padding: 0.25,
-                            }
-                        }},
-                    {data: {id: 'f', parent: 'e'}}
-                ],
-                edges: [
-                    {data: {id: 'ad', source: 'a', target: 'd'}},
-                    {data: {id: 'eb', source: 'e', target: 'b'}}
-
-                ]
-            }
-        },
-        prevSession = {};
-
-        function _synchSession() {
+        var synchPeriodMS = 1500;
+        var synchChannel = _.throttle(function(socket) {
 
             //get positions
             var eles = window.cy.elements();
@@ -187,47 +104,49 @@
                 var y = p.y;
                 P[ele.id()] = [parseInt(x), parseInt(y)];
             }
-            session.positions = P;
+            channel.p = P; //positions; using 1 character because this is updated frequently
 
             //https://github.com/Starcounter-Jack/Fast-JSON-Patch
-            var diff = jsonpatch.compare(prevSession, session);
+            var diff = jsonpatch.compare(channelPrev, channel);
 
-            prevSession = jQuery.extend(true, {}, session);
+            channelPrev = jQuery.extend(true, {}, channel);
 
             if (diff.length > 0) {
-                var diffString = JSON.stringify(['p',session.id,diff]);
+                var diffString = JSON.stringify(['p', channel.id, diff]);
                 console.log('session diff', diffString.length, diffString);
-                ws.send(diffString);
-                
+                socket.send(diffString);
+
             }
 
-        }
-        var synchSession = _.throttle(_synchSession, 1500);
+        }, synchPeriodMS);
 
-        function commit() {
-            if (ws.opened) {
-                synchSession();
+        function commit(socket) {
+            socket = socket || window.ws;
+            if (socket.opened) {
+                synchChannel(socket);
             } else {
                 //nothing
             }
         }
 
 
+        var ready = function () {
+                
+            window.cy = this;
+            window.ws = websocketConnect(commit);
+
+            initEvents(this);
+
+        };
 
         $('#graph').cytoscape({
-            style: session.style,
-            elements: session.elements,
+            style: channel.style,
+            elements: channel.elements,
             layout: {
                 name: 'cose',
                 padding: 5
             },
-            ready: function () {                
-                window.cy = this;
-                
-                initWebSocket();
-                initEvents(this);
-
-            },
+            ready: ready,
             // initial viewport state:
             zoom: 1,
             pan: {x: 0, y: 0},
@@ -252,9 +171,7 @@
             motionBlur: true,
             wheelSensitivity: 1,
             //pixelRatio: 1
-            initrender: function (evt) { /* ... */
-
-            }
+            initrender: function (evt) { /* ... */ }
             //renderer: { /* ... */},
         });
 
@@ -329,44 +246,44 @@
                 var w = widgets.get(node);
 
                 function setWidgetHTML() {
-                    w.html(widget.html).data('when', Date.now());                    
+                    w.html(widget.html).data('when', Date.now());
                 }
-                
+
                 /*if (w) {
-                    var whenLastModified = w.data('when');
-                    if (whenLastModified < Date.now()) {
-                        
-                    }
-                }*/
+                 var whenLastModified = w.data('when');
+                 if (whenLastModified < Date.now()) {
+                 
+                 }
+                 }*/
 
                 if (!w) {
 
                     var style = widget.style || {};
                     style.position = 'fixed';
                     style.transformOrigin = '0 0';
-                    
+
                     //var wid = 'widget_' + node.getID();
                     w = $('<div></div>').
                             //attr('id', wid).
                             addClass('widget').
                             css(style).
                             appendTo('#widgets');
-                    
+
                     setWidgetHTML();
-                    
-                    function commitWidgetChange(e){
-                        
+
+                    function commitWidgetChange(e) {
+
                         //this is probably less efficient than going from DOM to JSON directly
                         var html = html2json(w.html());
-                        
+
                         //console.log(html);
-                        
+
                         if (html !== widget.html) {
                             widget.html = html;
-                            commit();                            
+                            commit();
                         }
                     }
-                    
+
                     w.bind("DOMSubtreeModified", commitWidgetChange); // Listen DOM changes
 
                     widgets.set(node, w);
@@ -422,52 +339,7 @@
         }
 
 
-        function initWebSocket() {
-            $(document).ready(function () {
 
-                var url = (window.location + '');
-                url = url.substring(url.indexOf('://') + 3);
-
-                window.ws = new WebSocket('ws://' + url + 'ws');
-                ws.onopen = function () {
-
-                    this.opened = true;
-
-                    console.log('websocket connected');
-
-                    commit();
-
-
-                };
-                ws.onmessage = function (e) {
-                    /*e.data.split("\n").forEach(function (l) {
-                        output(l, true);
-                    });*/
-
-                    console.log('websocket in', e.data);
-
-                };
-                ws.onclose = function () {
-                    //already disconnected?
-                    if (!this.opened)
-                        return;
-
-                    this.opened = false;
-
-                    console.log("Websocket disconnected");
-
-                    //attempt reconnect?
-                };
-                ws.onerror = function(e) {
-                    console.log("Websocket error", e);
-                };
-    //
-            });
-        }
-        
-        function jsonUnquote(json) {            
-            return json.replace(/\"([^(\")"]+)\":/g,"$1:");  //This will remove all the quotes
-        }
 
     </script>
 </html>
