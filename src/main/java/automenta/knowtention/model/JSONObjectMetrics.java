@@ -27,7 +27,7 @@ public class JSONObjectMetrics implements Serializable {
     String channel;
     long when;
     private int numStrings, numEmbeddedObjects, numValues, numNulls, numBooleans, numNumbers;
-    private long sumStringLengths;
+    private long stringLengthSum;
     
     public JSONObjectMetrics(Channel c) {
         this(c.node);  
@@ -58,7 +58,7 @@ public class JSONObjectMetrics implements Serializable {
                         numStrings++;
                         String s = parser.getValueAsString();
                         if (s!=null)
-                            sumStringLengths += s.length();
+                            stringLengthSum += s.length();
                         break;
                     case VALUE_EMBEDDED_OBJECT:
                         numValues++;
@@ -132,7 +132,9 @@ public class JSONObjectMetrics implements Serializable {
     public long getWhen() {
         return when;
     }
-    
-    
+
+    public long getStringLengthSum() {
+        return stringLengthSum;
+    }
     
 }

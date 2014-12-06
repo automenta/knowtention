@@ -9,6 +9,9 @@
         <script src="lib/cytoscape.js"></script>
         <script src="lib/json-patch-duplex.min.js"></script>
         <script src="lib/web_socket.js"></script>
+        
+        <script src="lib/html2json/html2json.js"></script>
+        <script src="lib/html2json/htmlparser.js"></script>
 
         <link type="text/css" rel="stylesheet" href="lib/materialize/css/materialize.min.css"  media="screen,projection"/>
 
@@ -308,15 +311,46 @@
                 var widget = node.data().widget; //html string
                 var w = widgets.get(node);
 
+                function setWidgetHTML() {
+                    w.html(widget.html).data('when', Date.now());                    
+                }
+                
+                /*if (w) {
+                    var whenLastModified = w.data('when');
+                    if (whenLastModified < Date.now()) {
+                        
+                    }
+                }*/
 
                 if (!w) {
 
                     var style = widget.style || {};
                     style.position = 'fixed';
                     style.transformOrigin = '0 0';
-
-                    w = $('<div></div>').addClass('widget').css(style).appendTo('#widgets');
-                    w.html(widget.html);
+                    
+                    //var wid = 'widget_' + node.getID();
+                    w = $('<div></div>').
+                            //attr('id', wid).
+                            addClass('widget').
+                            css(style).
+                            appendTo('#widgets');
+                    
+                    setWidgetHTML();
+                    
+                    function commitWidgetChange(e){
+                        
+                        //this is probably less efficient than going from DOM to JSON directly
+                        var html = html2json(w.html());
+                        
+                        console.log(html);
+                        
+                        if (html !== widget.html) {
+                            widget.html = html;
+                            commit();                            
+                        }
+                    }
+                    
+                    w.bind("DOMSubtreeModified", commitWidgetChange); // Listen DOM changes
 
                     widgets.set(node, w);
                 }
