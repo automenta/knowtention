@@ -63,9 +63,11 @@
             <div class="nav-wrapper light-green darken-2">
                 <!--<a href="#" class="brand-logo">Logo</a>-->
                 <ul id="nav-mobile" class="right side-nav">
-                    <li><a href="sass.html">Sass</a></li>
-                    <li><a href="components.html">Components</a></li>
-                    <li><a href="javascript.html">JavaScript</a></li>
+                    <li><a href="sass.html">What</a></li>
+                    <li><a href="sass.html">Who</a></li>
+                    <li><a href="sass.html">Where</a></li>
+                    <li><a href="components.html">When</a></li>
+                    <li><a href="javascript.html">Why</a></li>
                 </ul>
                 <a class="button-collapse" href="#" data-activates="nav-mobile"><i class="mdi-navigation-menu"></i></a>
             </div>
@@ -91,16 +93,18 @@
                     css: {
                         'content': 'data(name)',
                         'text-valign': 'center',
-                        'text-halign': 'center'
+                        'text-halign': 'center',
+                        'width': 'data(width)',
+                        'height': 'data(height)'
                     }
                 },
                 {
                     selector: '$node > node',
                     css: {
-                        'padding-top': '5px',
-                        'padding-left': '5px',
-                        'padding-bottom': '5px',
-                        'padding-right': '5px',
+                        'padding-top': '2px',
+                        'padding-left': '2px',
+                        'padding-bottom': '2px',
+                        'padding-right': '2px',
                         'text-valign': 'top',
                         'text-halign': 'center'
                     }
@@ -110,11 +114,11 @@
                     css: {
                         'target-arrow-shape': 'triangle'
                     }
-                },
+                },                
                 {
                     selector: ':selected',
                     css: {
-                        'background-color': 'black',
+                        //'background-color': 'black',
                         'line-color': 'black',
                         'target-arrow-color': 'black',
                         'source-arrow-color': 'black'
@@ -127,9 +131,11 @@
                     {data: {id: 'b'}},
                     {data: {id: 'c', parent: 'b'}},
                     {data: {id: 'd',
+                            height: 128,
+                            width: 128,
                             widget: {
-                                html: '<h1>=D</h1>',
-                                //html: '<iframe width="600px" height="600px" src="http://en.wikipedia.org/wiki/MaidSafe"></iframe><br/><button>x</button>',
+                                //html: '<h1>=D</h1>',
+                                html: '<iframe width="600px" height="600px" src="http://enenews.com"></iframe><br/><button>x</button>',
                                 scale: 1 / 600.0,
                                 minPixels: 2,
                                 padding: 0.1
@@ -142,6 +148,17 @@
                                 scale: 1 / 300.0,
                                 minPixels: 32,
                                 padding: 0.25
+                            }
+                        }},
+                    {data: {id: 'e1',
+                            width: 64,
+                            height: 64,
+                            widget: {
+                                html: '<div style="background-color: green; border: 2px solid black;"><div contenteditable="true" class="editable">OR(AND(F,B),Z) => X</div><br/><button>OK</button></div>',
+                                style: {width: '300px', height: '260px'},
+                                scale: 1 / 300.0,
+                                minPixels: 32,
+                                padding: 0.25,
                             }
                         }},
                     {data: {id: 'f', parent: 'e'}}
@@ -342,7 +359,7 @@
                         //this is probably less efficient than going from DOM to JSON directly
                         var html = html2json(w.html());
                         
-                        console.log(html);
+                        //console.log(html);
                         
                         if (html !== widget.html) {
                             widget.html = html;
