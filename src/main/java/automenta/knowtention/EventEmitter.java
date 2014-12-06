@@ -15,7 +15,7 @@ import java.util.Map;
 public class EventEmitter {
 
 
-    public static final boolean CONCURRENT = false;
+    public static final boolean CONCURRENT = true;
     
     /** Observes events emitted by EventEmitter */
     public interface EventObserver<C> {

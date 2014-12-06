@@ -178,6 +178,7 @@
                 var diffString = JSON.stringify(['p',session.id,diff]);
                 console.log('session diff', diffString.length, diffString);
                 ws.send(diffString);
+                
             }
 
         }
@@ -412,7 +413,10 @@
     //
             });
         }
-
+        
+        function jsonUnquote(json) {            
+            return json.replace(/\"([^(\")"]+)\":/g,"$1:");  //This will remove all the quotes
+        }
 
     </script>
 </html>

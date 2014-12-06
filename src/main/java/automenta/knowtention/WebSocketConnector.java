@@ -29,8 +29,6 @@ import java.util.Map;
  */
 public class WebSocketConnector implements WebSocketConnectionCallback {
 
-    final ObjectMapper json = new ObjectMapper();
-
     private Core core;
 
     public WebSocketConnector(Core c) {
@@ -40,25 +38,25 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
 
     public class WebSocketConnection extends AbstractReceiveListener implements WebSocketCallback<Void> {
 
-        final Map<String,Channel> channels = new HashMap();
-        
+        final Map<String, Channel> channels = new HashMap();
+
         public WebSocketConnection(WebSocketChannel socket) {
             super();
-            
+
             System.out.println(socket.getPeerAddress() + " connected websocket");
-            
-            Channel c = core.newChannel(); 
+
+            Channel c = core.newChannel();
             addChannel(c);
-            
+
             send(socket, c);
         }
-        
-        public void addChannel(Channel c) {            
-            channels.put(c.id, c);            
+
+        public void addChannel(Channel c) {
+            channels.put(c.id, c);
         }
-        
+
         public Channel getChannel(String id) {
-            Channel c = channels.get(id);            
+            Channel c = channels.get(id);
             if (c == null) {
                 c = core.getChannel(this, id);
                 return c;
@@ -68,56 +66,51 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
 
         @Override
         protected void onFullTextMessage(WebSocketChannel socket, BufferedTextMessage message) throws IOException {
-            
-            //System.out.println(socket + " recv txt: " + message.getData());
-            JsonNode j = json.readValue(message.getData(), JsonNode.class);
-            if (j.isArray()) {
-                if (j.size() > 1) {
-                    
-                    String operation = j.get(0).textValue();
-                    
-                    
-                    switch (operation) {
-                        case "p": //jsonpatch
-                            String channel = j.get(1).textValue();
 
-                            Channel c = getChannel(channel);
-                            
-                            ArrayNode patchJson = (ArrayNode) j.get(2);
-                            try {
-                                
-                                JsonPatch patch = JsonPatch.fromJson(patchJson);
-                                c.applyPatch(patch);
-                                
-                            }
-                            catch (Exception e) { 
-                                System.err.println(e);
-                                clientError(socket, e.toString());
-                            }
-                            
-                            break;
+            try {
+                //System.out.println(socket + " recv txt: " + message.getData());
+                JsonNode j = Core.json.readValue(message.getData(), JsonNode.class);
+                if (j.isArray()) {
+                    if (j.size() > 1) {
+
+                        String operation = j.get(0).textValue();
+
+                        switch (operation) {
+                            case "p": //jsonpatch
+                                String channel = j.get(1).textValue();
+
+                                Channel c = getChannel(channel);
+
+                                ArrayNode patchJson = (ArrayNode) j.get(2);
+                                try {
+
+                                    JsonPatch patch = JsonPatch.fromJson(patchJson);
+                                    c.applyPatch(patch);
+
+                                } catch (Exception e) {                                   
+                                    e.printStackTrace();
+                                    clientError(socket, e.toString());
+                                }
+
+                                break;
+                        }
                     }
+
                 }
-                
-                
-                }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-
-
-
+        }
 
         public void clientError(WebSocketChannel socket, String message) {
             WebSockets.sendText(message, socket, null);
         }
-        
+
         @Override
         protected void onFullBinaryMessage(WebSocketChannel channel, BufferedBinaryMessage message) throws IOException {
 
             //System.out.println(channel + " recv bin: " + message.getData());
-
         }
-        
-        
 
         @Override
         protected void onClose(WebSocketChannel socket, StreamSourceFrameChannel channel) throws IOException {
@@ -125,14 +118,16 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             System.out.println(socket.getPeerAddress() + " disconnected websocket");
         }
 
-        /** send the complete copy of the channel */
+        /**
+         * send the complete copy of the channel
+         */
         public void send(WebSocketChannel socket, Channel c) {
             send(socket, c.node);
         }
-        
+
         public void send(WebSocketChannel socket, Object object) {
             try {
-                ByteBuffer data = ByteBuffer.wrap(json.writeValueAsBytes(object));
+                ByteBuffer data = ByteBuffer.wrap(Core.json.writeValueAsBytes(object));
                 //System.out.println("Sending: " + data);
                 WebSockets.sendText(data, socket, this);
             } catch (JsonProcessingException ex) {
