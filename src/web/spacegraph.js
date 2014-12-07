@@ -26,36 +26,45 @@ function spacegraph(target, opt) {
         //overlay framenode --------------
         
         var frame = $('#nodeframe');
+        var hovered = null;
         var frameVisible = false;
-        var frameTarget = null;
         var frameTimeToFade = 2000; //ms
         var frameHiding = -1;
         var frameNodeScale = 1;
         var frameNodeMargin = -0.25;
         
-        this.on('mouseover mouseout', function(e) {
+        this.on('pan zoom', function(e) {
+            setTimeout(hoverUpdate, 0);
+        });
+        
+        this.on('mouseover mouseout mousemove', function(e) {
             
             var target = e.cyTarget;
-            var over = (e.type === "mouseover");
-            
-            frameVisible = over;
+            var over = (e.type !== "mouseout");
+                        
             
             if (target && target.isNode && target.isNode()) {                
-                if (frameTarget!==target) {
-                    //changed target, so hide so it can fade in there
-                    frame.hide();
-                    frame.fadeIn();
+                if (over || (hovered!==target)) {
+                    //cancel any hide fade
+                    clearTimeout(frameHiding);
+                    frameHiding = -1;
                 }
-                if (target)
-                    frameTarget = target;
-            }            
+                
+                if (hovered!==target) {
+                    frame.hide();
+                    frameVisible = true;
+                    frame.fadeIn();
+                    hovered = target;
+                }
+            } else {
+                frameVisible = false;
+            }
             
-            updateFrames();
-            
+            setTimeout(hoverUpdate, 0);
             
         });
         
-        function updateFrames() {
+        function hoverUpdate() {
             var currentlyVisible = frame.is(':visible');
             if (frameVisible) {
                 if (!currentlyVisible)
@@ -67,15 +76,15 @@ function spacegraph(target, opt) {
                         //if still set for hiding, actually hide it
                         if (!frameVisible)
                             frame.fadeOut(function() {
-                                frameTarget = null;
+                                hovered = null;
                             });
 
                         frameHiding = -1;
                     }, frameTimeToFade);                
                 }
             }
-            if (currentlyVisible && frameTarget) {
-                positionNodeHTML(frameTarget, frame, frameNodeScale, frameNodeMargin);
+            if (currentlyVisible && hovered) {
+                positionNodeHTML(hovered, frame, frameNodeScale, frameNodeMargin);
             }
             
         }
@@ -105,7 +114,7 @@ function spacegraph(target, opt) {
         this._private.renderer.redraw = function(options) {
             baseRedraw.apply(this, arguments);
 
-            updateFrames();
+            hoverUpdate();
             updateWidgets();
         };
 
@@ -115,6 +124,8 @@ function spacegraph(target, opt) {
 
             if (widget(node)) {
                 queueWidgetUpdate(node);
+                if (hovered === node)
+                    hoverUpdate();
             }
         };
 
