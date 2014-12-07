@@ -210,6 +210,10 @@ function spacegraph(target, opt) {
     s.channels = { };
     s.widgets = new WeakMap(); //node -> widget
     
+    function wrapInData(d) {
+        return { data: d };
+    }
+    
     s.addChannel = function(c) {
         
         this.channels[c.id()] = c;
@@ -217,7 +221,12 @@ function spacegraph(target, opt) {
         if (c.ui!==this)
             c.init(this);
                        
-        this.add( c.data.elements );
+        var e = {
+            nodes: c.data.nodes.map(wrapInData), // c.data.nodes,
+            edges: c.data.edges.map(wrapInData) //c.data.edges
+        };        
+        
+        this.add( e );
         
         //TODO merge style; this will replace it with c's
         this.style( c.data.style );
@@ -229,8 +238,12 @@ function spacegraph(target, opt) {
     };
     
     s.removeChannel = function(c) {
-        
-        this.remove(c.data.elements());
+
+        //remove all nodes, should remove all connected edges too
+        for (var i = 0; i < c.data.nodes; i++) {
+            var nodeID = c.data.nodes[i].id;
+            this.remove('#' + nodeID);
+        }
         
         //TODO remove style
         

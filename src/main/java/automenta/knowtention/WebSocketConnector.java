@@ -46,10 +46,11 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
 
             System.out.println(socket.getPeerAddress() + " connected websocket");
 
-            Channel c = core.newChannel();
+            /*Channel c = core.newChannel();
             addChannel(c);
 
             send(socket, c);
+            */
         }
 
         public void addChannel(Channel c) {
@@ -117,7 +118,10 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             if (c==null) return;
             
             //send initial state
-            send(socket, c.getSnapshot());
+            ArrayNode a = Core.j.arrayNode();
+            a.add("channel");
+            a.add(c.getSnapshot());
+            send(socket, a);
         }
         
         /** 'off', unsubscribe */

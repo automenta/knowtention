@@ -1,5 +1,8 @@
 var Channel = function (initialData, connection) {
 
+    if (typeof(initialData)==="string")
+        initialData = { id: initialData };
+    
     var c = {
         ui: null,
         data: initialData,

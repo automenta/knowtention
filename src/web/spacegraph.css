@@ -10,7 +10,10 @@ body nav {
     top:0;
     right: 0;
     opacity:0.95;
-    z-index: 10000;
+    z-index: 1000;
+}
+.ui-pnotify {
+    z-index: 2000;
 }
 #graph, #widgets {
     position: fixed;

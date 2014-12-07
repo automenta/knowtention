@@ -62,7 +62,12 @@ public class Core extends EventEmitter {
         return c;
     }
     
-    final public static ObjectMapper json = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
+    final public static ObjectMapper json = new ObjectMapper()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
+    
+    final public static JsonNodeFactory j = new JsonNodeFactory(false);
     
     public static String toJSON(Object o) {
         try {
@@ -79,7 +84,7 @@ public class Core extends EventEmitter {
 
     /** adapter for JSONPatch+ */
     static JsonPatch getPatch(ArrayNode patch) throws IOException {
-        JsonNodeFactory f = new JsonNodeFactory(false);
+        
 
         //System.out.println("min: " + patch.toString());
         
@@ -114,36 +119,36 @@ public class Core extends EventEmitter {
                 String op = k.get(0).textValue();
                 switch (op.charAt(0)) {
                     case '+':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "add");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));
                         break;
                     case '-':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "remove");
                         m.put("path", k.get(1));
                         break;
                     case '*':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "copy");
                         m.put("from", k.get(1));
                         m.put("path", k.get(2));
                         break;
                     case '/':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "move");
                         m.put("from", k.get(1));
                         m.put("path", k.get(2));
                         break;
                     case '?':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "test");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));
                         break;
                     case '=':
-                        m = new ObjectNode(f);
+                        m = new ObjectNode(j);
                         m.put("op", "replace");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));
