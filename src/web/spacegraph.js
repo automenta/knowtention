@@ -1,4 +1,4 @@
-function spacegraph(target, opt) {
+function spacegraph(ui, target, opt) {
     
     var ready = function() {
 
@@ -125,7 +125,7 @@ function spacegraph(target, opt) {
             if (widget(node)) {
                 queueWidgetUpdate(node);
                 if (hovered === node)
-                    hoverUpdate();
+                    setTimeout(hoverUpdate, 0);
             }
         };
 
@@ -326,7 +326,7 @@ function spacegraph(target, opt) {
         // rendering options:
         headless: false,
         styleEnabled: true,
-        hideEdgesOnViewport: true,
+        hideEdgesOnViewport: false,
         hideLabelsOnViewport: false,
         textureOnViewport: false, //true = higher performance, lower quality
         motionBlur: true,
@@ -392,6 +392,8 @@ function spacegraph(target, opt) {
             s.layout();
         }, 0);
         */
+       
+        ui.addChannel(this, c);
     };
     
     s.removeChannel = function(c) {
@@ -408,6 +410,8 @@ function spacegraph(target, opt) {
         c.destroy();
         
         this.layout();
+        
+        ui.removeChannel(c);
     };
     
     s.commit = function() {
