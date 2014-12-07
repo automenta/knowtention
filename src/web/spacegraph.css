@@ -23,7 +23,7 @@ body nav {
     height: 100%;                    
 }
 #widgets {
-    pointer-events: none;
+    pointer-events: none;    
 }
 .widget {
     pointer-events: none;
@@ -31,4 +31,9 @@ body nav {
 
 .widget * {
     pointer-events: all;
+}
+
+#nodeframe {
+    opacity: 0.9;
+    width: 400px;
 }

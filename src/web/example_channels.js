@@ -2,9 +2,9 @@ var person = {
     firstname: 'Jane',
     surname: 'Doe',
     age: 32,
-    save: function () {
+
+    save: function (e) {
         document.getElementById('metawidget1').save();
-        $('#metawidget1').parent().attr('data', JSON.stringify(this));
         notify('Saved: ' + JSON.stringify(person));
     }
 };
@@ -13,14 +13,14 @@ function newExampleChannel1() {
 
 
     return {
-        id: 'defaultClient' + parseInt(Math.random() * 10000),
+        id: 'untitled_' + parseInt(Math.random() * 100),
         style: {
             'node': {
                 'content': 'data(id)',
                 'text-valign': 'center',
                 'text-halign': 'center',
-                'width': 'data(width)',
-                'height': 'data(height)',
+                //'width': 'data(width)',
+                //'height': 'data(height)',
                 'shape': 'hexagon'
             },
             '$node > node': {
@@ -33,8 +33,8 @@ function newExampleChannel1() {
             },
             'edge': {
                 'target-arrow-shape': 'triangle',
-                'line-style': 'dashed',
-                'line-width': 16
+                //'line-style': 'dashed',
+                'line-width': '16'
             },
             ':selected': {
                 //'background-color': 'black',
@@ -48,14 +48,23 @@ function newExampleChannel1() {
                 shape: 'rectangle'
             }},
             {id: 'a', parent: 'b',
-                css: { content: '.', shape: 'triangle', width: '8', height: '8' }
+                style: { content: '.', shape: 'triangle', width: '8', height: '8' }
             },
             {id: 'c', parent: 'b',
-                css: { content: '.', shape: 'triangle', width: '8', height: '8' }
+                style: { content: '.', shape: 'triangle', width: '8', height: '8' }
             },
             {id: 'd',
                 height: 16,
                 width: 16,
+                form: {
+                    value: {
+                        firstname: 'Jane',
+                        surname: 'Doe',
+                        age: 32
+                    },
+                    style: {width: '300px', height: '260px'},
+                    scale: 1 / 300.0
+                },
                 widget: {
                     html: '<x-metawidget id="metawidget1" path="person"></x-metawidget>',
                     style: {width: '300px', height: '260px'},
@@ -91,7 +100,12 @@ function newExampleChannel1() {
             //{id: 'f', parent: 'e'}
         ],
         edges: [
-            {id: 'eb', source: 'e', target: 'b'},
+            {id: 'eb', source: 'e', target: 'b',
+                style: {
+                    'line-color': 'blue',
+                    'line-width': '44'
+                }
+            },
             {id: 'db', source: 'd', target: 'b'}
             //{id: 'eb', source: 'e', target: 'b'}
         ]

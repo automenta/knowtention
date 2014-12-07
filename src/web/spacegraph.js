@@ -1,33 +1,107 @@
 function spacegraph(target, opt) {
     
     var ready = function() {
+
+        var that = this;
         
         opt.start(this);
                 
 
         //http://js.cytoscape.org/#events/collection-events
         //
-        this.on('data position select unselect add remove grab drag style', function (evt) {
+        this.on('data position select unselect add remove grab drag style', function (e) {
             /*console.log( evt.data.foo ); // 'bar'
              
              var node = evt.cyTarget;
              console.log( 'tapped ' + node.id() );*/
 
-            var target = evt.cyTarget;
+            var target = e.cyTarget;
             if (widget(target))
                 queueWidgetUpdate(target);
 
             this.commit();
         });
+        
+
+        //overlay framenode --------------
+        
+        var frame = $('#nodeframe');
+        var frameVisible = false;
+        var frameTarget = null;
+        var frameTimeToFade = 2000; //ms
+        var frameHiding = -1;
+        
+        this.on('mouseover mouseout', function(e) {
+            
+            var target = e.cyTarget;
+            var over = (e.type === "mouseover");
+            
+            frameVisible = over;
+            
+            if (target && target.isNode && target.isNode()) {                
+                if (frameTarget!==target) {
+                    //changed target, so hide so it can fade in there
+                    frame.hide();
+                    frame.fadeIn();
+                }
+                if (target)
+                    frameTarget = target;
+            }            
+            
+            updateFrames();
+            
+            
+        });
+        
+        function updateFrames() {
+            var currentlyVisible = frame.is(':visible');
+            if (frameVisible) {
+                if (!currentlyVisible)
+                    frame.fadeIn();
+            }
+            else {                
+                if ((frameHiding===-1) && (currentlyVisible)) {
+                    frameHiding = setTimeout(function() {
+                        //if still set for hiding, actually hide it
+                        if (!frameVisible)
+                            frame.fadeOut(function() {
+                                frameTarget = null;
+                            });
+
+                        frameHiding = -1;
+                    }, frameTimeToFade);                
+                }
+            }
+            if (currentlyVisible && frameTarget) {
+                positionNodeHTML(frameTarget, frame, 1/160.0);
+            }
+            
+        }
+        
+        // ----------------------
+        
+        this.on('cxttap', function(e) {
+            var target = e.cyTarget;
+            if (!target) return;
+            
+            zoomTo(target);
+        });
+        
+
+        
+        // ------------------------
+        
+        // zoom handler
 
         var widgetsToUpdate = {};
 
-//            var baseRedraw = this._private.renderer.redraw;
-//            this._private.renderer.redraw = function(options) {
-//
-//                
-//                baseRedraw.apply(this, arguments);
-//            };
+        var baseRedraw = this._private.renderer.redraw;
+        this._private.renderer.redraw = function(options) {
+            baseRedraw.apply(this, arguments);
+
+            updateFrames();
+            updateWidgets();
+        };
 
         var baseDrawNode = this._private.renderer.drawNode;
         this._private.renderer.drawNode = function (context, node, drawOverlayInstead) {
@@ -44,7 +118,6 @@ function spacegraph(target, opt) {
 
         function queueWidgetUpdate(node) {
             widgetsToUpdate[node.id()] = node;
-            updateWidgets();
         }
 
         var updateWidgets = _.throttle(function () {
@@ -68,7 +141,6 @@ function spacegraph(target, opt) {
 
         
 
-        var that = this;
         
         function updateNodeWidget(node) {
             var widget = node.data().widget; //html string
@@ -101,13 +173,11 @@ function spacegraph(target, opt) {
                 setWidgetHTML();
 
                 function commitWidgetChange(e) {
-
-                    console.log('html change', w);
+                    
+                    var oh = w[0].innerHTML;
                     
                     //this is probably less efficient than going from DOM to JSON directly
-                    var html = html2json(w.html());
-
-                    console.log('html change', html);
+                    var html = html2json(oh);
 
                     if (html !== widget.html) {
                         widget.html = html;
@@ -117,49 +187,14 @@ function spacegraph(target, opt) {
                     }
                 }
 
-                w.bind("DOMSubtreeModified", commitWidgetChange); // Listen DOM changes
-                w.bind("DOMAttributeModified", commitWidgetChange); // Listen DOM changes
+                //TODO use MutationObservers
+                w.bind("DOMSubtreeModified DOMAttrModified", commitWidgetChange); // Listen DOM changes
 
                 that.widgets.set(node, w);
             }
 
+            positionNodeHTML(node, w, widget.scale, widget.padding, widget.minPixels);
 
-            var pos = node.renderedPosition();
-            var pw = node.renderedWidth();
-            var ph = node.renderedHeight();
-            var paddingScale = (widget.padding || 0);
-
-            var ps = Math.min(pw, ph) * (1.0 - paddingScale);
-
-            var widgetScale = widget.scale;
-            var wx = ps * widgetScale;
-
-            var nextCSS = {};
-            if (widget.minPixels) {
-                var hidden = 'none' === w.css('display');
-
-                if (ps < widget.minPixels) {
-                    if (!hidden) {
-                        w.css({display: 'none'});
-                        return;
-                    }
-                }
-                else {
-                    if (hidden) {
-                        nextCSS['display'] = 'block';
-                    }
-                }
-            }
-
-            var mata, matb, matc, matd, mate, matf;
-            mata = wx;
-            matb = 0;
-            matc = 0;
-            matd = wx;
-            mate = parseInt(pos.x - pw / 2 + pw * paddingScale / 2.0);
-            matf = parseInt(pos.y - ph / 2 + ph * paddingScale / 2.0);
-            nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' + matc + ',' + matd + ',' + mate + ',' + matf + ')';
-            w.css(nextCSS);
         }
 
 
@@ -171,6 +206,63 @@ function spacegraph(target, opt) {
 //                
 //            }        
     };
+    
+    
+    /** html=html dom element */
+    function positionNodeHTML(node, html, scale, padding, minPixels) {
+        
+        /*if (!node.visible()) {
+            html.hide();
+            return;
+        }
+        else {
+            html.show();
+        }*/
+
+        var pos = node.renderedPosition();
+        var pw = node.renderedWidth();
+        var ph = node.renderedHeight();
+        var paddingScale = (padding || 0);
+
+        var ps = Math.min(pw, ph) * (1.0 - paddingScale);
+
+        var widgetScale = scale || 1;
+        var wx = ps * widgetScale;
+
+        //TODO check extents to determine node visibility for hiding off-screen HTML
+        //for possible improved performance
+
+        var nextCSS = {};
+        if (minPixels) {
+            var hidden = 'none' === html.css('display');
+
+            if (ps < minPixels) {
+                if (!hidden) {
+                    html.css({display: 'none'});
+                    return;
+                }
+            }
+            else {
+                if (hidden) {
+                    nextCSS['display'] = 'block';
+                }
+            }
+        }
+
+        var mata, matb, matc, matd, px, py;
+        mata = wx;
+        matb = 0;
+        matc = 0;
+        matd = wx;
+        
+        //parseInt here to reduce precision of numbers for constructing the matrix string
+        //TODO replace this with direct matrix object construction involving no string ops        
+        px = parseInt(pos.x - pw / 2 + pw * paddingScale / 2.0); //'e' matrix element
+        py = parseInt(pos.y - ph / 2 + ph * paddingScale / 2.0); //'f' matrix element
+        nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' + matc + ',' + matd + ',' + px + ',' + py + ')';
+        html.css(nextCSS);        
+    }
+    
     
     opt = _.defaults(opt, {
         layout: {
@@ -215,8 +307,8 @@ function spacegraph(target, opt) {
     
     function wrapInData(d) {
         var w = { data: d };
-        if (d.css)
-            w.css = d.css;
+        if (d.style)
+            w.css = d.style;
         return w;
     }
     
@@ -258,9 +350,8 @@ function spacegraph(target, opt) {
         this.resize();
         
         
-        var that = this;
         setTimeout(function() {
-            that.layout();
+            s.layout();
         }, 0);
     };
     
@@ -286,6 +377,20 @@ function spacegraph(target, opt) {
             c.commit();
         }
     };
-    
+
+    function zoomTo(ele) {
+        var pos = ele.position();
+
+
+        s.animate({
+          fit: {
+            eles: ele,
+            padding: 20
+          }
+        }, {
+          duration: 1000
+        });
+    }
+        
     return s;
 };
