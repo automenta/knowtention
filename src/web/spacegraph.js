@@ -102,10 +102,12 @@ function spacegraph(target, opt) {
 
                 function commitWidgetChange(e) {
 
+                    console.log('html change', w);
+                    
                     //this is probably less efficient than going from DOM to JSON directly
                     var html = html2json(w.html());
 
-                    //console.log(html);
+                    console.log('html change', html);
 
                     if (html !== widget.html) {
                         widget.html = html;
@@ -116,6 +118,7 @@ function spacegraph(target, opt) {
                 }
 
                 w.bind("DOMSubtreeModified", commitWidgetChange); // Listen DOM changes
+                w.bind("DOMAttributeModified", commitWidgetChange); // Listen DOM changes
 
                 that.widgets.set(node, w);
             }
@@ -211,7 +214,10 @@ function spacegraph(target, opt) {
     s.widgets = new WeakMap(); //node -> widget
     
     function wrapInData(d) {
-        return { data: d };
+        var w = { data: d };
+        if (d.css)
+            w.css = d.css;
+        return w;
     }
     
     s.addChannel = function(c) {
@@ -228,20 +234,24 @@ function spacegraph(target, opt) {
         };        
         
         //fuckup (unnecessarily complexify with redundancy) the style format so cytoscape can recognize it
-        var s = [       ];
-        for (sel in c.data.style) {
-            s.push({
-               selector: sel,
-               css: c.data.style[sel]
-            });
-        }
-        
-        //TODO merge style; this will replace it with c's        
+        if (c.data.style) {
+            var s = [       ];
+            for (sel in c.data.style) {
+                s.push({
+                   selector: sel,
+                   css: c.data.style[sel]
+                });
+            }
 
-        this.style().clear();        
-        
-        this.style().fromJson(s);
-        this.style().update();
+            if (s.length > 0) {
+                //TODO merge style; this will replace it with c's        
+
+                this.style().clear();        
+
+                this.style().fromJson(s);
+                this.style().update();
+            }
+        }
         
         this.add( e );
 

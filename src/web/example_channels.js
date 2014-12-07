@@ -4,6 +4,7 @@ var person = {
     age: 32,
     save: function () {
         document.getElementById('metawidget1').save();
+        $('#metawidget1').parent().attr('data', JSON.stringify(this));
         notify('Saved: ' + JSON.stringify(person));
     }
 };
@@ -43,19 +44,28 @@ function newExampleChannel1() {
             }
         },
         nodes: [
-            {id: 'b'},
-            {id: 'a', parent: 'b', width: 16, height: 16},
-            {id: 'c', parent: 'b', width: 16, height: 16},
+            {id: 'b', css: {
+                shape: 'rectangle'
+            }},
+            {id: 'a', parent: 'b',
+                css: { content: '.', shape: 'triangle', width: '8', height: '8' }
+            },
+            {id: 'c', parent: 'b',
+                css: { content: '.', shape: 'triangle', width: '8', height: '8' }
+            },
             {id: 'd',
-                height: 128,
-                width: 128,
+                height: 16,
+                width: 16,
                 widget: {
                     html: '<x-metawidget id="metawidget1" path="person"></x-metawidget>',
                     style: {width: '300px', height: '260px'},
                     //html: '<iframe width="600px" height="600px" src="http://enenews.com"></iframe><br/><button>x</button>',
-                    scale: 1 / 600.0,
+                    scale: 1 / 300.0,
                     minPixels: 2,
                     padding: 0.1
+                },
+                css: {
+                    opacity: 0.75
                 }
             },
             {id: 'e',
@@ -81,7 +91,7 @@ function newExampleChannel1() {
             //{id: 'f', parent: 'e'}
         ],
         edges: [
-            {id: 'ad', source: 'a', target: 'd'},
+            {id: 'eb', source: 'e', target: 'b'},
             {id: 'db', source: 'd', target: 'b'}
             //{id: 'eb', source: 'e', target: 'b'}
         ]
