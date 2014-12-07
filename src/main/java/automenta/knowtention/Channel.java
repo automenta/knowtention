@@ -1,17 +1,22 @@
 package automenta.knowtention;
 
 import automenta.knowtention.EventEmitter.EventObserver;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Holds working data in the form of a JSON symbol tree
  * @see https://github.com/fge/json-patch
  */
-public class Channel implements Serializable {
+public class Channel extends EventEmitter implements Serializable {
+
     
     public abstract static class ChannelChange implements EventObserver {  
 
@@ -23,11 +28,12 @@ public class Channel implements Serializable {
         
     }
     
-    public ObjectNode node;
+    protected ObjectNode node;
     public final String id;
     transient private Core core;
 
     public Channel(Core core, String id) {
+        super();
         this.id = id;
         this.core = core;
         this.node = JsonNodeFactory.instance.objectNode();
@@ -35,6 +41,7 @@ public class Channel implements Serializable {
     }
     
     public Channel(Core core, ObjectNode node) {
+        super();
         this.node = node;
         this.core = core;
         this.id = node.get("id").asText();
@@ -46,11 +53,40 @@ public class Channel implements Serializable {
     }
 
     void applyPatch(JsonPatch patch) throws JsonPatchException {
-        node = (ObjectNode) patch.apply(node);
+        setNode( (ObjectNode) patch.apply(node) );
         core.emit(ChannelChange.class, this, patch);
     }
     
+    public Channel setNode(ObjectNode newValue) {
+        //set or overwrite the 'id' field
+        newValue.put("id", id);
+        
+        this.node = newValue;
+        
+        emit(ChannelChange.class);
+        
+        return this;
+    }
     
+    public Channel setNode(String jsonContent) {
+        try {
+            
+            setNode( Core.json.readValue(jsonContent, ObjectNode.class) );
+            
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return this;
+    }
+
+    public ObjectNode getNode() {
+        return node;
+    }
+    
+    
+    public JsonNode getSnapshot() {
+        return getNode();
+    }
     
     
 }

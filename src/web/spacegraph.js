@@ -199,44 +199,53 @@ function spacegraph(target, opt) {
         motionBlur: true,
         wheelSensitivity: 1,
         //pixelRatio: 1
-        initrender: function (evt) { /* ... */
-        },
+        initrender: function (evt) { /* ... */ },
         //renderer: { /* ... */},
         container: target[0]
     });
     
     
-    var c = cytoscape(opt);
+    var s = cytoscape(opt);
     
-    c.channels = { };
-    c.widgets = new WeakMap(); //node -> widget
+    s.channels = { };
+    s.widgets = new WeakMap(); //node -> widget
     
-    c.addChannel = function(channel) {
+    s.addChannel = function(c) {
         
-        this.channels[channel.id()] = channel;
+        this.channels[c.id()] = c;
         
-        if (channel.ui!==this)
-            channel.init(this);
+        if (c.ui!==this)
+            c.init(this);
                        
-        this.add( channel.data.elements );
+        this.add( c.data.elements );
         
         //TODO merge style; this will replace it with c's
-        this.style( channel.data.style );
+        this.style( c.data.style );
         
         var that = this;
         setTimeout(function() {
             that.layout();
         }, 0);
-
-        
     };
     
-    c.commit = function() {
+    s.removeChannel = function(c) {
+        
+        this.remove(c.data.elements());
+        
+        //TODO remove style
+        
+        delete this.channels[c.id()];
+        c.destroy();
+        
+        this.layout();
+    };
+    
+    s.commit = function() {
         for (i in this.channels) {
             var c = this.channels[i];
             c.commit();
         }
     };
     
-    return c;
+    return s;
 };

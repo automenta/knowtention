@@ -5,9 +5,10 @@
  */
 package automenta.knowtention;
 
+import automenta.knowtention.Channel.ChannelChange;
+import automenta.knowtention.EventEmitter.EventObserver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import io.undertow.websockets.WebSocketConnectionCallback;
@@ -76,30 +77,70 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
                         String operation = j.get(0).textValue();
 
                         switch (operation) {
-                            case "p": //jsonpatch
-                                String channel = j.get(1).textValue();
-
-                                Channel c = getChannel(channel);
-
-                                ArrayNode patchJson = (ArrayNode) j.get(2);
-                                try {
-
-                                    
-                                    JsonPatch patch = Core.getPatch(patchJson);
-                                    c.applyPatch(patch);
-
-                                } catch (Exception e) {                                   
-                                    e.printStackTrace();
-                                    clientError(socket, e.toString());
-                                }
-
-                                break;
+                            case "p":  onPatch(j, socket); break;
+                            case "on": onOn(j, socket); break;
+                            case "off": onOff(j, socket); break;
                         }
                     }
 
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+            }
+        }
+
+        public final EventObserver channelObserver = new EventObserver() {
+
+            @Override
+            public void event(Class event, Object[] args) {
+            }
+            
+        };
+
+        protected Channel setChannelSubscription(JsonNode j, WebSocketChannel socket, boolean subscribed) {
+            String channel = j.get(1).textValue();
+            
+            Channel c = core.getChannel(this, channel);
+            if (c==null) {
+                send(socket, channel + " does not exist");
+                return null;
+            }
+            
+            c.set(channelObserver, subscribed, ChannelChange.class);            
+            
+            return c;
+        }
+        
+        /** 'on', subscribe */
+        protected void onOn(JsonNode j, WebSocketChannel socket) {
+            Channel c = setChannelSubscription(j, socket, true);
+            if (c==null) return;
+            
+            //send initial state
+            send(socket, c.getSnapshot());
+        }
+        
+        /** 'off', unsubscribe */
+        protected void onOff(JsonNode j, WebSocketChannel socket) {
+            setChannelSubscription(j, socket, false);            
+        }
+
+        protected void onPatch(JsonNode j, WebSocketChannel socket) {
+            //jsonpatch
+            String channel = j.get(1).textValue();
+            
+            Channel c = getChannel(channel);
+            
+            ArrayNode patchJson = (ArrayNode) j.get(2);
+            try {
+                
+                
+                JsonPatch patch = Core.getPatch(patchJson);
+                c.applyPatch(patch);
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+                clientError(socket, e.toString());
             }
         }
 

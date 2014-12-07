@@ -5,6 +5,7 @@
  */
 package automenta.knowtention;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -13,9 +14,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
-import com.github.fge.jsonpatch.JsonPatchOperation;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -30,11 +29,18 @@ public class Core extends EventEmitter {
     
     public Core() {
         super();
+        
+        Channel index = newChannel("index");
+        index.setNode("{ 'channels': [ 'a', 'b', 'c' ], 'users': [ 'x', 'y', 'z' ]  }");
     }
     
     /** default, generic anonymous channel */
     public Channel newChannel() {
-        Channel c = new Channel( this, newChannelID() );
+        return newChannel( newChannelID() );
+    }
+    
+    public Channel newChannel(String id) {
+        Channel c = new Channel( this, id );
         channels.put(c.id, c);
         return c;
     }
@@ -56,7 +62,7 @@ public class Core extends EventEmitter {
         return c;
     }
     
-    final public static ObjectMapper json = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);
+    final public static ObjectMapper json = new ObjectMapper().disable(SerializationFeature.FAIL_ON_EMPTY_BEANS).configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true);
     
     public static String toJSON(Object o) {
         try {

@@ -24,7 +24,7 @@
         <script src="lib/fastclick.js"></script>
 
         <script src="core.js"></script>
-        <script src="websocket.js"></script>
+        <script src="channel.js"></script>
         <script src="spacegraph.js"></script>
         <script src="example_channels.js"></script>
 
@@ -79,79 +79,19 @@
 
     <script>
 
+        var server = Websocket();
 
-        
-        var Channel = function(initialData, socket) {
+        var s = spacegraph($('#graph'), {
+            start: function() { 
             
-            var c = {
-                ui: null,
-                data: initialData,
-                socket: socket,
-                prev: { },
+                server.on('index', s.addChannel);
                 
-                id: function() { return this.data.id; }                
-            };
-            
-            c.init = function(ui) {                
-                this.ui = ui;
-                
-                this.commit();
-            };
-            
-            var synchPeriodMS = 1500;
-            
-            c.commit = _.throttle(function() {
-                
-                if (!this.socket.opened) {
-                    return;
-                }                
-
-                //get positions
-                var eles = this.ui.elements();
-                var P = {};
-                for (var i = 0; i < eles.length; i++) {
-                    var ele = eles[i];
-                    //console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
-                    var p = ele.position();
-                    var x = p.x;
-                    if (!isFinite(x))
-                        continue;
-                    var y = p.y;
-                    P[ele.id()] = [parseInt(x), parseInt(y)];
-                }
-                this.data.p = P; //positions; using 1 character because this is updated frequently
-
-                //https://github.com/Starcounter-Jack/Fast-JSON-Patch
-                var diff = jsonpatch.compare(this.prev, this.data);
-
-                this.prev = _.clone(this.data, true);
-
-                if (diff.length > 0) {
-                    var diffString = JSON.stringify(['p', this.data.id, diff]);
-                    
-                    console.log('session diff', diffString.length, diffString);
-                    
-                    this.socket.send(diffString);
-                }
-        
-            }, synchPeriodMS);
-            
-            return c;
-        };
-
-        var sg = spacegraph($('#graph'), {
-
-            start: function() {                      
-                window.ws = websocketConnect();
-                sg.addChannel(new Channel( newExampleChannel1(), ws));
-            }
-            
+            }            
         });
         
+        s.addChannel(new Channel( newExampleChannel1(), server));
+
         
-
-
-
-
+        
     </script>
 </html>
