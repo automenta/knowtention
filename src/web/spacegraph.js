@@ -30,6 +30,8 @@ function spacegraph(target, opt) {
         var frameTarget = null;
         var frameTimeToFade = 2000; //ms
         var frameHiding = -1;
+        var frameNodeScale = 1;
+        var frameNodeMargin = -0.25;
         
         this.on('mouseover mouseout', function(e) {
             
@@ -73,18 +75,22 @@ function spacegraph(target, opt) {
                 }
             }
             if (currentlyVisible && frameTarget) {
-                positionNodeHTML(frameTarget, frame, 1/160.0);
+                positionNodeHTML(frameTarget, frame, frameNodeScale, frameNodeMargin);
             }
             
         }
         
         // ----------------------
         
-        this.on('cxttap', function(e) {
+        this.on('cxttapstart', function(e) {
             var target = e.cyTarget;
-            if (!target) return;
             
-            zoomTo(target);
+            if (!target) {                
+                zoomTo();
+            }
+            else {
+                zoomTo(target);
+            }
         });
         
 
@@ -125,9 +131,9 @@ function spacegraph(target, opt) {
             var nextWidgetsToUpdate = _.values(widgetsToUpdate);
 
             if (nextWidgetsToUpdate.length > 0) {
-                widgetsToUpdate = {};
 
                 setTimeout(function () {
+                    widgetsToUpdate = {};
 
                     for (var i = 0; i < nextWidgetsToUpdate.length; i++) {
                         var node = nextWidgetsToUpdate[i];
@@ -222,13 +228,32 @@ function spacegraph(target, opt) {
         var pos = node.renderedPosition();
         var pw = node.renderedWidth();
         var ph = node.renderedHeight();
-        var paddingScale = (padding || 0);
+        
+        var paddingScale = (padding || 0);       
 
-        var ps = Math.min(pw, ph) * (1.0 - paddingScale);
+        scale = scale || 1;
+        
+        var cw = html[0].clientWidth;
+        var ch = html[0].clientHeight;
+        if (cw === 0 || ch === 0) {
+            return;
+        }
+        
+        var globalToLocalW = pw / cw;
+        var globalToLocalH = ph / ch;
+        
+        //var globalToLocal = Math.min(globalToLocalW, globalToLocalH);        
+        //var wx = scale * globalToLocal * (1.0 - paddingScale) ;
+        
+        var wx = scale * globalToLocalW * (1.0 - paddingScale);
+        var wy = scale * globalToLocalH * (1.0 - paddingScale);
+        
+        var aspectRatio = true;
+        if (aspectRatio) {
+            wx = wy = Math.min(wx, wy);
+        }
 
-        var widgetScale = scale || 1;
-        var wx = ps * widgetScale;
-
+                    
         //TODO check extents to determine node visibility for hiding off-screen HTML
         //for possible improved performance
 
@@ -236,7 +261,7 @@ function spacegraph(target, opt) {
         if (minPixels) {
             var hidden = 'none' === html.css('display');
 
-            if (ps < minPixels) {
+            if (/*wx < minPixels*/ false) {
                 if (!hidden) {
                     html.css({display: 'none'});
                     return;
@@ -253,12 +278,14 @@ function spacegraph(target, opt) {
         mata = wx;
         matb = 0;
         matc = 0;
-        matd = wx;
-        
+        matd = wy;
+                
         //parseInt here to reduce precision of numbers for constructing the matrix string
         //TODO replace this with direct matrix object construction involving no string ops        
         px = parseInt(pos.x - pw / 2 + pw * paddingScale / 2.0); //'e' matrix element
         py = parseInt(pos.y - ph / 2 + ph * paddingScale / 2.0); //'f' matrix element
+        //px = pos.x;
+        //py = pos.y;
         nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' + matc + ',' + matd + ',' + px + ',' + py + ')';
         html.css(nextCSS);        
     }
@@ -288,7 +315,7 @@ function spacegraph(target, opt) {
         // rendering options:
         headless: false,
         styleEnabled: true,
-        hideEdgesOnViewport: false,
+        hideEdgesOnViewport: true,
         hideLabelsOnViewport: false,
         textureOnViewport: false, //true = higher performance, lower quality
         motionBlur: true,
@@ -349,10 +376,11 @@ function spacegraph(target, opt) {
 
         this.resize();
         
-        
+        /*
         setTimeout(function() {
             s.layout();
         }, 0);
+        */
     };
     
     s.removeChannel = function(c) {
@@ -379,16 +407,20 @@ function spacegraph(target, opt) {
     };
 
     function zoomTo(ele) {
-        var pos = ele.position();
+        var pos;
+        if (!ele || !ele.position)
+            pos = { x: 0, y: 0 };        
+        else 
+            pos = ele.position();
 
 
         s.animate({
           fit: {
             eles: ele,
-            padding: 20
+            padding: 50
           }
         }, {
-          duration: 1000
+            duration: 384
         });
     }
         

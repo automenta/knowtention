@@ -36,4 +36,5 @@ body nav {
 #nodeframe {
     opacity: 0.9;
     width: 400px;
+    transform-origin: 0 0;
 }

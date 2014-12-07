@@ -63,13 +63,13 @@ function newExampleChannel1() {
                         age: 32
                     },
                     style: {width: '300px', height: '260px'},
-                    scale: 1 / 300.0
+                    scale: 1
                 },
                 widget: {
                     html: '<x-metawidget id="metawidget1" path="person"></x-metawidget>',
                     style: {width: '300px', height: '260px'},
                     //html: '<iframe width="600px" height="600px" src="http://enenews.com"></iframe><br/><button>x</button>',
-                    scale: 1 / 300.0,
+                    scale: 1,
                     minPixels: 2,
                     padding: 0.1
                 },
@@ -78,10 +78,12 @@ function newExampleChannel1() {
                 }
             },
             {id: 'e',
+                width: 64,
+                height: 64,
                 widget: {
                     html: '<div style="background-color: orange; border: 2px solid black;"><div contenteditable="true" class="editable">WTF</div><br/><button>OK</button></div>',
                     style: {width: '300px', height: '260px'},
-                    scale: 1 / 300.0,
+                    scale: 1.0,
                     minPixels: 32,
                     padding: 0.25
                 }
@@ -92,7 +94,7 @@ function newExampleChannel1() {
                 widget: {
                     html: '<div style="background-color: green; border: 2px solid black;"><div contenteditable="true" class="editable">OR(AND(F,B),Z) => X</div><br/><button>OK</button></div>',
                     style: {width: '300px', height: '260px'},
-                    scale: 1 / 300.0,
+                    scale: 1,
                     minPixels: 32,
                     padding: 0.25
                 }
