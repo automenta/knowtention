@@ -92,21 +92,22 @@
                 id: function() { return this.data.id; }                
             };
             
-            c.init = function(ui) {
+            c.init = function(ui) {                
                 this.ui = ui;
+                
                 this.commit();
-            }
+            };
             
             var synchPeriodMS = 1500;
             
             c.commit = _.throttle(function() {
-
+                
                 if (!this.socket.opened) {
                     return;
                 }                
 
                 //get positions
-                var eles = ui.elements();
+                var eles = this.ui.elements();
                 var P = {};
                 for (var i = 0; i < eles.length; i++) {
                     var ele = eles[i];

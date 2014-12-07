@@ -2,7 +2,7 @@ function spacegraph(target, opt) {
     
     var ready = function() {
         
-        opt.start();
+        opt.start(this);
                 
 
         //http://js.cytoscape.org/#events/collection-events
@@ -17,7 +17,7 @@ function spacegraph(target, opt) {
             if (widget(target))
                 queueWidgetUpdate(target);
 
-            commit();
+            this.commit();
         });
 
         var widgetsToUpdate = {};
@@ -66,11 +66,13 @@ function spacegraph(target, opt) {
 
         }, 10);
 
-        var widgets = new WeakMap();
+        
 
+        var that = this;
+        
         function updateNodeWidget(node) {
             var widget = node.data().widget; //html string
-            var w = widgets.get(node);
+            var w = that.widgets.get(node);
 
             function setWidgetHTML() {
                 w.html(widget.html).data('when', Date.now());
@@ -107,13 +109,15 @@ function spacegraph(target, opt) {
 
                     if (html !== widget.html) {
                         widget.html = html;
-                        commit();
+                        
+                        //TODO only commit the channel this node belongs to
+                        that.commit();
                     }
                 }
 
                 w.bind("DOMSubtreeModified", commitWidgetChange); // Listen DOM changes
 
-                widgets.set(node, w);
+                that.widgets.set(node, w);
             }
 
 
@@ -196,24 +200,42 @@ function spacegraph(target, opt) {
         wheelSensitivity: 1,
         //pixelRatio: 1
         initrender: function (evt) { /* ... */
-        }
+        },
         //renderer: { /* ... */},
-
+        container: target[0]
     });
     
-    var c = target.cytoscape(opt);
-    c.channels = { };
     
-    c.addChannel = function(c) {
+    var c = cytoscape(opt);
+    
+    c.channels = { };
+    c.widgets = new WeakMap(); //node -> widget
+    
+    c.addChannel = function(channel) {
         
-        this.channels[c.id()] = c;
+        this.channels[channel.id()] = channel;
         
-        if (c.ui!==this)
-            c.init(this);
+        if (channel.ui!==this)
+            channel.init(this);
+                       
+        this.add( channel.data.elements );
         
-        //  style: channel.style,
-        //  elements: channel.elements            
+        //TODO merge style; this will replace it with c's
+        this.style( channel.data.style );
+        
+        var that = this;
+        setTimeout(function() {
+            that.layout();
+        }, 0);
 
+        
+    };
+    
+    c.commit = function() {
+        for (i in this.channels) {
+            var c = this.channels[i];
+            c.commit();
+        }
     };
     
     return c;
