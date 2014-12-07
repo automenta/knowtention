@@ -46,7 +46,7 @@ function Websocket(conn) {
     };
 
     conn.send = function(data) {
-        var jdata = jsonUnquote( JSON.stringify(data) );
+        var jdata = /*jsonUnquote*/( JSON.stringify(data) );
         
         console.log('send:', jdata.length, jdata);
 

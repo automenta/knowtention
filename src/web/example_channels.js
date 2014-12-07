@@ -32,7 +32,8 @@ function newExampleChannel1() {
             },
             'edge': {
                 'target-arrow-shape': 'triangle',
-                'line-style': 'dashed'
+                'line-style': 'dashed',
+                'line-width': 16
             },
             ':selected': {
                 //'background-color': 'black',
@@ -76,12 +77,13 @@ function newExampleChannel1() {
                     minPixels: 32,
                     padding: 0.25
                 }
-            },
-            {id: 'f', parent: 'e'}
+            }
+            //{id: 'f', parent: 'e'}
         ],
         edges: [
             {id: 'ad', source: 'a', target: 'd'},
-            {id: 'eb', source: 'e', target: 'b'}
+            {id: 'db', source: 'd', target: 'b'}
+            //{id: 'eb', source: 'e', target: 'b'}
         ]
     };
 }
