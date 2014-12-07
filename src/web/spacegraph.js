@@ -221,15 +221,32 @@ function spacegraph(target, opt) {
         if (c.ui!==this)
             c.init(this);
                        
+        //fuckup (unnecessarily complexify with redundancy) the nodes/edges format so cytoscape can recognize it
         var e = {
             nodes: c.data.nodes.map(wrapInData), // c.data.nodes,
             edges: c.data.edges.map(wrapInData) //c.data.edges
         };        
         
-        this.add( e );
+        //fuckup (unnecessarily complexify with redundancy) the style format so cytoscape can recognize it
+        var s = [       ];
+        for (sel in c.data.style) {
+            s.push({
+               selector: sel,
+               css: c.data.style[sel]
+            });
+        }
         
-        //TODO merge style; this will replace it with c's
-        this.style( c.data.style );
+        //TODO merge style; this will replace it with c's        
+
+        this.style().clear();        
+        
+        this.style().fromJson(s);
+        this.style().update();
+        
+        this.add( e );
+
+        this.resize();
+        
         
         var that = this;
         setTimeout(function() {
