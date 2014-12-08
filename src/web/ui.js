@@ -152,8 +152,9 @@ function initFrameDrag() {
                 
                 var pos = node.position();
                 this.originalNode = node;
-                this.originalPos = [ pos.x, pos.y ];
+                this.originalPos = [ parseFloat(pos.x), parseFloat(pos.y) ];
                 this.originalSize = [ node.width(), node.height(), node.renderedWidth(), node.renderedHeight() ];
+                this.originalOffset = [ ui.offset.left, ui.offset.top ];
             },
             drag: function (event, ui) {
 
@@ -161,30 +162,47 @@ function initFrameDrag() {
                 if (node!=this.originalNode)
                     return;
             
-                var dx = ui.position.left - ui.originalPosition.left;
-                var dy = ui.position.top - ui.originalPosition.top;
-                
-                
-                
-                console.log(this.originalSize);
+                var dx = parseFloat(ui.offset.left - this.originalOffset[0]);
+                var dy = parseFloat(ui.offset.top - this.originalOffset[1]);
                 
                 var p = this.originalPos;
                 var os = this.originalSize;
                 
-                var w = os[0] + dx * (os[0]/os[2]);
-                var h = os[1] + dy * (os[1]/os[3]);
-                var x = p[0];
-                var y = p[1];
+                var dw = dx * (os[0]/os[2]);
+                var dh = dy * (os[1]/os[3]);
+                var w = os[0] + dw;
+                var h = os[1] + dh;
+                var x = p[0] + dw/2.0;
+                var y = p[1] + dh/2.0;
                 
-                node.css({
-                    'x': x,
-                    'y': y,
-                    'width': w,
-                    'height': h
+                /*
+                node.animate({
+                    position: { x: x, y: y },
+                    css: { 
+                        'width': w,
+                        'height': h
+                    }
+                }, {
+                    duration: 0
                 });
+                */
+
+                node.position({ x: x, y: y });
+                node.css({
+                        'width': w,
+                        'height': h
+                });
+
+                /*setTimeout(function() {
+                    
+                    console.log(node);
+                    
+                    
+                }, 0);*/
             
             },
             stop: function (event, ui) {
+                
                 nodeFrame.data('resizing', false);
             }
 
