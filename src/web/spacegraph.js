@@ -33,6 +33,8 @@ function spacegraph(ui, target, opt) {
         var frameNodeScale = 1;
         var frameNodeMargin = -0.25;
         
+        //http://threedubmedia.com/code/event/drag/demo/resize2
+        
         this.on('pan zoom', function(e) {
             setTimeout(hoverUpdate, 0);
         });
@@ -259,7 +261,7 @@ function spacegraph(ui, target, opt) {
         var wx = scale * globalToLocalW * (1.0 - paddingScale);
         var wy = scale * globalToLocalH * (1.0 - paddingScale);
         
-        var aspectRatio = true;
+        var aspectRatio = false;
         if (aspectRatio) {
             wx = wy = Math.min(wx, wy);
         }
@@ -350,19 +352,14 @@ function spacegraph(ui, target, opt) {
         return w;
     }
     
-    s.addChannel = function(c) {
-        
-        this.channels[c.id()] = c;
-        
-        if (c.ui!==this)
-            c.init(this);
-                       
+    s.updateChannel = function(c) {
         //fuckup (unnecessarily complexify with redundancy) the nodes/edges format so cytoscape can recognize it
-        var e = {
-            nodes: c.data.nodes.map(wrapInData), // c.data.nodes,
-            edges: c.data.edges.map(wrapInData) //c.data.edges
-        };        
         
+        var e = {
+            nodes: c.data.nodes ? c.data.nodes.map(wrapInData) : [], // c.data.nodes,
+            edges: c.data.edges ? c.data.edges.map(wrapInData) : [] //c.data.edges
+        };        
+                
         //fuckup (unnecessarily complexify with redundancy) the style format so cytoscape can recognize it
         if (c.data.style) {
             var s = [       ];
@@ -383,6 +380,7 @@ function spacegraph(ui, target, opt) {
             }
         }
         
+        
         this.add( e );
 
         this.resize();
@@ -392,6 +390,17 @@ function spacegraph(ui, target, opt) {
             s.layout();
         }, 0);
         */
+        
+    };
+    
+    s.addChannel = function(c) {
+        
+        this.channels[c.id()] = c;
+        
+        if (c.ui!==this)
+            c.init(this);
+      
+        this.updateChannel(c);
        
         ui.addChannel(this, c);
     };
@@ -432,7 +441,7 @@ function spacegraph(ui, target, opt) {
         s.animate({
           fit: {
             eles: ele,
-            padding: 50
+            padding: 80
           }
         }, {
             duration: 384

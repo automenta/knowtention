@@ -7,12 +7,17 @@
         <script src="lib/jquery-2.1.1.min.js"></script>
         <script src="lib/lodash.min.js"></script>
         <script src="lib/cytoscape.js"></script>
-        <!-- <script src="lib/json-patch-duplex.min.js"></script> --> 
-        <script src="lib/jsonsynch.min.js"></script>
+        
+        
+        <script src="lib/json-patch-duplex.min.js"></script>
+        <!--<script src="lib/jiff.js"></script>
+        <script src="lib/jsonsynch.min.js"></script>-->
+        
         <script src="lib/web_socket.js"></script>
 
         <script src="lib/html2json/html2json.js"></script>
         <script src="lib/html2json/htmlparser.js"></script>
+        <script src="lib/jquery.pep.js"></script>
 
         <link type="text/css" rel="stylesheet" href="lib/foundation/foundation.min.css"  media="screen,projection"/>
         <script type="text/javascript" src="lib/foundation/foundation.min.js"></script>
@@ -45,9 +50,8 @@
 
             <section class="top-bar-section">
             
-                <ul class="left">
-                    <li id="ChannelMenu" class="has-dropdown">
-                    </li>
+                <ul id="ChannelMenu" class="left">
+                    
                 </ul>
                 
                 <ul class="right">
@@ -68,10 +72,7 @@
                     </li>
                 </ul>
 
-                <!-- Left Nav Section -->
-                <ul class="left">
-                    <!--<li><input type="text"></input></li>-->
-                </ul>
+
             </section>
         </nav>
 
@@ -86,24 +87,24 @@
             
             <div id="nodeframe" class="widget" style="width: 300px; height: 300px; position: fixed">
                 <div style="top: 0; right: -0; position: absolute">
-                    <button class="button tiny">-</button>
-                    <button class="button small">X</button>
+                    <button class="round success button tiny">-</button>
+                    <button class="round button small">X</button>
                 </div>
 
-                <div class="label"
+                <div class="rround label"
                      style="top: 0px; left: 0px; position: absolute;">                    
                     <input type="range" min="0.1" max="10.0"
                            style="width: 30px; transform: rotate(90deg);"/>                    
                 </div>
                 
                 
-                <span class="label"
+                <span class="round label"
                       style="bottom: -0px; left: 0px; position: absolute;">
-                      [!]</span>
+                      [ ]</span>
                 
-                <span class="label"
+                <span id="resizeSE" class="round label"
                       style="bottom: -0px; right: -0px; position: absolute;">
-                      [?]</span>
+                      [ ]</span>
                 
             </div>
         </div>
@@ -126,7 +127,7 @@
                     var s = window.s = spacegraph(ui, $('#graph'), {
                         start: function() { 
 
-                            server.on('index', s.addChannel);
+                            //server.on('index', s.addChannel);
 
                         }            
                     });

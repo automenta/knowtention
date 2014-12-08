@@ -44,18 +44,31 @@ function newExampleChannel1() {
             }
         },
         nodes: [
-            {id: 'b', css: {
-                shape: 'rectangle'
-            }},
-            {id: 'a', parent: 'b',
+            {id: 'b', 
+                style: { 
+                    shape: 'triangle',
+                    height: 24,
+                    width: 16                
+                }, 
+            },
+            /*{id: 'a', parent: 'b',
                 style: { content: '.', shape: 'triangle', width: '8', height: '8' }
             },
             {id: 'c', parent: 'b',
                 style: { content: '.', shape: 'triangle', width: '8', height: '8' }
-            },
+            },*/
+            /*{
+                    id: 'serial' + parseInt(Math.random()*100),
+                    width: 16,
+                    height: 16,
+                        
+                        widget: {
+                            html: "<div contenteditable='true' class='editable' style='overflow: auto; resizable: both'></div>",
+                            scale: 0.8,
+                            style: {width: '300px', height: '300px'},
+                        },
+                },*/
             {id: 'd',
-                height: 16,
-                width: 16,
                 form: {
                     value: {
                         firstname: 'Jane',
@@ -73,7 +86,9 @@ function newExampleChannel1() {
                     minPixels: 2,
                     padding: 0.1
                 },
-                css: {
+                style: {
+                    height: "24",
+                    width: "24",
                     opacity: 0.75
                 }
             },

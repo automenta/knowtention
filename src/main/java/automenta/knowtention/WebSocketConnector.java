@@ -139,8 +139,8 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             try {
                 
                 
-                JsonPatch patch = Core.getPatch(patchJson);
-                c.applyPatch(patch);
+                //JsonPatch patch = Core.getPatch(patchJson);
+                c.applyPatch(JsonPatch.fromJson(patchJson));
                 
             } catch (Exception e) {
                 e.printStackTrace();

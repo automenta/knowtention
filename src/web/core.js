@@ -55,9 +55,11 @@ function Websocket(conn) {
 
     conn.handler = {
         channel: function(d) {
+            var channelData = d[1];
+            
             //snapshot update
             notify(this, d);
-            
+            s.addChannel(new Channel( { id: channelData.id, data:channelData}, conn ));
         }
 
                 
@@ -68,21 +70,25 @@ function Websocket(conn) {
          output(l, true);
          });*/
         
-        try {
+        //try {
             var d = JSON.parse(e.data);
+            
             if (d[0]) {
+                
                 //array, first element = message type
                 var messageHandler = conn.handler[d[0]];
-                if (messageHandler) {
-                    return conn.apply(messageHandler,d);
+                if (messageHandler) {                    
+                    //return conn.apply(messageHandler,d);
+                    return messageHandler(d);
                 }
             }
             
             notify('websocket data (unrecognized): ' + JSON.stringify(d));
-        }
-        catch (e) {
-            notify('websocket text', e.data);
-        }
+        /*}
+        catch (ex) {
+            notify('in: ' + e.data);
+            console.log(ex);
+        }*/
     };
     
     conn.on = function(channelID, callback) {
