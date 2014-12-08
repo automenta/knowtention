@@ -8,8 +8,6 @@ import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Holds working data in the form of a JSON symbol tree
@@ -52,12 +50,12 @@ public class Channel extends EventEmitter implements Serializable {
         return node.toString();
     }
 
-    void applyPatch(JsonPatch patch) throws JsonPatchException {
+    synchronized void applyPatch(JsonPatch patch) throws JsonPatchException {
         setNode( (ObjectNode) patch.apply(node) );
         core.emit(ChannelChange.class, this, patch);
     }
     
-    public Channel setNode(ObjectNode newValue) {
+    synchronized public Channel setNode(ObjectNode newValue) {
         //set or overwrite the 'id' field
         newValue.put("id", id);
         

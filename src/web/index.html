@@ -5,8 +5,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <script src="lib/jquery-2.1.1.min.js"></script>
+        <script src="lib/jquery-ui.min.js"></script>
+        
         <script src="lib/lodash.min.js"></script>
         <script src="lib/cytoscape.js"></script>
+        <script src="lib/cytoscape-edgehandles.js"></script>
         
         
         <script src="lib/json-patch-duplex.min.js"></script>
@@ -99,8 +102,8 @@
                       style="bottom: -0px; left: 0px; position: absolute;">
                       [ ]</span>
                 
-                <span id="resizeSE" class="round label"
-                      style="bottom: -0px; right: -0px; position: absolute;">
+                <span id="resizeSE" class="resizeHandle round label"
+                      style="bottom: -0px; right: -0px; position: absolute; cursor: move;">
                       [ ]</span>
                 
             </div>
