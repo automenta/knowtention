@@ -13,11 +13,7 @@ function UI(e) {
     var u = {
     };
 
-    initFrameDrag();
-
     var newContentTypes = ['text', 'data', 'map', 'timeline', 'sketch', 'www'];
-
-
 
     u.addChannel = function (space, c) {
         var cclass = c.id() + '_menu';
@@ -95,7 +91,7 @@ function UI(e) {
                     var cx = 0.5 * (ex.x1 + ex.x2);
                     var cy = 0.5 * (ex.y1 + ex.y2);
 
-                    c.data.nodes.push(n);
+                    c.addNode(n);
 
                     space.updateChannel(c); //actually an update
 
@@ -132,109 +128,3 @@ function UI(e) {
 
     return u;
 }
-
-function initFrameDrag() {
-    var nodeFrame = $('#nodeframe');
-    var se = $('#nodeframe #resizeSE');
-    $(function () {
-        //$( "#draggable" ).draggable({ revert: true });
-        se.draggable({
-            revert: true, 
-            helper: "clone",
-            appendTo: '#nodeframe #resizeSE',
-            //appendTo: "body",
-            
-            //http://api.jqueryui.com/draggable/#event-drag
-            start: function (event, ui) {
-                var node = nodeFrame.data('node');
-                
-                nodeFrame.data('resizing', true);
-                
-                var pos = node.position();
-                this.originalNode = node;
-                this.originalPos = [ parseFloat(pos.x), parseFloat(pos.y) ];
-                this.originalSize = [ node.width(), node.height(), node.renderedWidth(), node.renderedHeight() ];
-                this.originalOffset = [ ui.offset.left, ui.offset.top ];
-            },
-            drag: function (event, ui) {
-
-                var node = nodeFrame.data('node');
-                if (node!=this.originalNode)
-                    return;
-            
-                var dx = parseFloat(ui.offset.left - this.originalOffset[0]);
-                var dy = parseFloat(ui.offset.top - this.originalOffset[1]);
-                
-                var p = this.originalPos;
-                var os = this.originalSize;
-                
-                var dw = dx * (os[0]/os[2]);
-                var dh = dy * (os[1]/os[3]);
-                var w = os[0] + dw;
-                var h = os[1] + dh;
-                var x = p[0] + dw/2.0;
-                var y = p[1] + dh/2.0;
-                
-                /*
-                node.animate({
-                    position: { x: x, y: y },
-                    css: { 
-                        'width': w,
-                        'height': h
-                    }
-                }, {
-                    duration: 0
-                });
-                */
-
-                node.position({ x: x, y: y });
-                node.css({
-                        'width': w,
-                        'height': h
-                });
-
-                /*setTimeout(function() {
-                    
-                    console.log(node);
-                    
-                    
-                }, 0);*/
-            
-            },
-            stop: function (event, ui) {
-                
-                nodeFrame.data('resizing', false);
-            }
-
-        });
-    });
-    /*
-     
-     se.pep({
-     shouldEase: false,
-     revert: true,
-     revertAfter: 'stop',
-     start: function() {
-     console.log(se);
-     notify('drag start: ' + JSON.stringify( se.position() ) );
-     },
-     stop: function() {
-     notify('drag stop: ' + JSON.stringify( se.position() ) );
-     
-     
-     
-     
-     se.css({
-     bottom: '-0px',
-     right: '-0px',               
-     'margin': '0px',
-     'top': '',
-     'left': '',
-     '-webkit-transform': '',
-     'transform': ''
-     });
-     }
-     });
-     */
-}
-

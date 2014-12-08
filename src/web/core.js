@@ -59,7 +59,11 @@ function Websocket(conn) {
             
             //snapshot update
             notify(this, d);
-            s.addChannel(new Channel( { id: channelData.id, data:channelData}, conn ));
+            
+            console.log(channelData);
+            
+            //{ id: channelData.id, data:channelData}
+            s.addChannel(new Channel( channelData, conn ));
         }
 
                 

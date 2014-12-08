@@ -25,6 +25,18 @@ var Channel = function (initialData, connection) {
 
     var synchPeriodMS = 1500;
 
+    c.addNode = function(n) {
+        
+        if (!this.data)
+            this.data = { };
+        
+        if (!this.data.nodes)
+            this.data.nodes = [];
+        
+        c.data.nodes.push(n);
+    
+    };
+    
     c.commit = _.throttle(function () {
 
         if (!this.socket.opened) {
