@@ -15,7 +15,7 @@ function UI(e) {
 
     initFrameDrag();
 
-    var newContentTypes = ['text', 'data', 'website', 'map', 'timeline', 'sketch'];
+    var newContentTypes = ['text', 'data', 'map', 'timeline', 'sketch', 'www'];
 
 
 
@@ -26,34 +26,35 @@ function UI(e) {
 
 
         var button = $('<a href="#">' + c.id() + '</a>');
-        var dropdown = $('<ul class="dropdown"></ul>');
+        var dropdown = $('<ul id="drop_' + c.id() + '" class="dropdown"></ul>');
+
 
         for (var i = 0; i < newContentTypes.length; i++) {
             var t = newContentTypes[i];
-            var a = $('<a href="#"> + ' + t + '</a>');
-            a.data('type', t);
+            
+            var l = $('<li></li>').append(a);
+            var a, v;
+            dropdown.append(l);
+            
+            if (t === 'www') {
+                v = $('<input style="margin: 4px; width:85%" type="text" placeholder="http://"></input>');                
+                a = $('<button style="float: right">www</button>').data('type', t);
+                
+                l.append(v, a);
+            }
+            else {
+                a = $('<a href="#">' + t + '</a>').data('type', t).appendTo(l);                
+            }
+            
             a.click(function() {
-               console.log('CLICKED'); 
                
                 var type = $(this).data('type');
                 notify('Adding new ' + type);
 
                 var n = null;
                 if (type === 'text') {
-                    /*n = {
-                     group: "nodes",
-                     data: {
-                     id: 'serial' + Math.random(),
-                     widget: {
-                     html: "<div contenteditable='true' class='editable' style='overflow: auto; resizable: both'></div>"
-                     },
-                     width: 16,
-                     height: 16
-                     },
-                     position: { x: 100, y: 100 }
-                     };*/
                     n = {
-                        id: 'serial' + parseInt(Math.random() * 100),
+                        id: 'txt' + parseInt(Math.random() * 1000),
                         style: {
                             width: 32,
                             height: 32
@@ -62,6 +63,25 @@ function UI(e) {
                             html: "<div contenteditable='true' class='editable' style='overflow: auto; resizable: both'></div>",
                             scale: 0.9,
                             style: {width: '300px', height: '300px'},
+                            padding: 0
+                        }
+                    };
+                }
+                else if (type === 'www') {
+                    var uurrll = v.val();
+                    if (!uurrll.indexOf('http://')===0)
+                        uurrll = 'http://' + uurrll;
+                    
+                    n = {
+                        id: 'www' + parseInt(Math.random() * 1000),
+                        style: {
+                            width: 64,
+                            height: 64
+                        },
+                        widget: {
+                            html: '<iframe width="600px" height="600px" src="' + uurrll + '"></iframe>',
+                            scale: 0.9,
+                            style: {width: '600px', height: '600px'},
                             padding: 0
                         }
                     };
@@ -86,15 +106,23 @@ function UI(e) {
                 }
 
             });
-            dropdown.append($('<li></li>').append(a));
         }
 
+        e.find('#ChannelMenu').append(                 
+                $('<li class="has-dropdown not-click"></li>').
+                    append( button, dropdown ).addClass(cclass)
+        ).foundation();
+        
+        
+/*
+<a href="#" class="button" data-dropdown="drop">Link Dropdown &raquo;</a>
+<ul id="drop" class="[tiny small medium large content]f-dropdown" data-dropdown-content>
+  <li><a href="#">This is a link</a></li>
+  <li><a href="#">This is another</a></li>
+  <li><a href="#">Yet another</a></li>
+</ul> */
 
-        $('#ChannelMenu').append( 
-                $('<li class="has-dropdown"></li>').
-                append(button, dropdown).
-                addClass(cclass)
-        );
+        
     };
 
 

@@ -17,7 +17,7 @@
 
         <script src="lib/html2json/html2json.js"></script>
         <script src="lib/html2json/htmlparser.js"></script>
-        <script src="lib/jquery.pep.js"></script>
+        <!--<script src="lib/jquery.pep.js"></script>-->
 
         <link type="text/css" rel="stylesheet" href="lib/foundation/foundation.min.css"  media="screen,projection"/>
         <script type="text/javascript" src="lib/foundation/foundation.min.js"></script>
@@ -29,7 +29,7 @@
         <script src="lib/metawidgets/metawidget-core.min.js"></script>
         
         <script src="lib/modernizr.js"></script>
-        <script src="lib/fastclick.js"></script>
+        <!-- <script src="lib/fastclick.js"></script> -->
 
         <script src="core.js"></script>
         <script src="channel.js"></script>
@@ -43,10 +43,7 @@
     </head>
     <body>
         <nav class="top-bar" data-topbar role="navigation">
-            <ul class="title-area">
-                <!-- Remove the class "menu-icon" to get rid of menu icon. Take out "Menu" to just have icon alone -->
-                <li class="toggle-topbar menu-icon"><a href="#"><span>[~]</span></a></li>
-            </ul>
+
 
             <section class="top-bar-section">
             
@@ -127,7 +124,7 @@
                     var s = window.s = spacegraph(ui, $('#graph'), {
                         start: function() { 
 
-                            //server.on('index', s.addChannel);
+                            server.on('index', s.addChannel);
 
                         }            
                     });

@@ -31,7 +31,7 @@ public class Core extends EventEmitter {
         super();
         
         Channel index = newChannel("index");
-        index.setNode("{ channels': [ 'a', 'b', 'c' ], 'users': [ 'x', 'y', 'z' ]  }");
+        index.setNode("{ 'channels': [ 'a', 'b', 'c' ], 'users': [ 'x', 'y', 'z' ]  }");
     }
     
     /** default, generic anonymous channel */
