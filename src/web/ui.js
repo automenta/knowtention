@@ -146,19 +146,46 @@ function initFrameDrag() {
             
             //http://api.jqueryui.com/draggable/#event-drag
             start: function (event, ui) {
-            },
-            drag: function (event, ui) {
-            },
-            stop: function (event, ui) {                
-                var dx = ui.position.left - ui.originalPosition.left;
-                var dy = ui.position.top - ui.originalPosition.top;
-                notify(dx + ' ' +dy);
-                
                 var node = nodeFrame.data('node');
                 
-                console.log(node);
-                node.css({ width: "32px", height: "48px"} );
+                nodeFrame.data('resizing', true);
                 
+                var pos = node.position();
+                this.originalNode = node;
+                this.originalPos = [ pos.x, pos.y ];
+                this.originalSize = [ node.width(), node.height(), node.renderedWidth(), node.renderedHeight() ];
+            },
+            drag: function (event, ui) {
+
+                var node = nodeFrame.data('node');
+                if (node!=this.originalNode)
+                    return;
+            
+                var dx = ui.position.left - ui.originalPosition.left;
+                var dy = ui.position.top - ui.originalPosition.top;
+                
+                
+                
+                console.log(this.originalSize);
+                
+                var p = this.originalPos;
+                var os = this.originalSize;
+                
+                var w = os[0] + dx * (os[0]/os[2]);
+                var h = os[1] + dy * (os[1]/os[3]);
+                var x = p[0];
+                var y = p[1];
+                
+                node.css({
+                    'x': x,
+                    'y': y,
+                    'width': w,
+                    'height': h
+                });
+            
+            },
+            stop: function (event, ui) {
+                nodeFrame.data('resizing', false);
             }
 
         });

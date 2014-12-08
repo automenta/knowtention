@@ -43,7 +43,9 @@ function spacegraph(ui, target, opt) {
             
             var target = e.cyTarget;
             var over = (e.type !== "mouseout");
-                        
+                
+            if (!frame.data('resizing'))
+                over = true;                
             
             if (target && target.isNode && target.isNode()) {                
                 if (over || (hovered!==target)) {
@@ -59,7 +61,7 @@ function spacegraph(ui, target, opt) {
                     hovered = target;
                 }
             } else {
-                frameVisible = false;
+                
             }
             
             setTimeout(hoverUpdate, 0);
