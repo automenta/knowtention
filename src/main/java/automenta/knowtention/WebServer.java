@@ -51,11 +51,11 @@ public class WebServer {
         int port = 8080;
         
         
-        if (args.length > 2) {            
-            host = args[1];
-        }
-        if (args.length > 1) {
+        if (args.length >= 1) {
             port = Integer.parseInt(args[0]);                        
+        }
+        if (args.length >= 2) {            
+            host = args[1];
         }
         
         System.out.println("Running: " + host + ":" + port);
