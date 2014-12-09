@@ -76,9 +76,9 @@ function UI(e) {
                         },
                         widget: {
                             html: '<iframe width="600px" height="600px" src="' + uurrll + '"></iframe>',
-                            scale: 0.9,
+                            scale: 1.0,
                             style: {width: '600px', height: '600px'},
-                            padding: 0
+                            padding: 0.1
                         }
                     };
                 }

@@ -25,6 +25,10 @@ public class WebServer {
     }
     
     public WebServer(Core c, String host, int port) {
+        this(c, host, port, "./src/web");
+    }
+    
+    public WebServer(Core c, String host, int port, String clientPath) {
 
         this.core = c;
         
@@ -34,7 +38,7 @@ public class WebServer {
                     .addPrefixPath("/ws", websocket(new WebSocketConnector(core)).addExtension(new PerMessageDeflateHandshake()))
                         
                 .addPrefixPath("/", resource(
-                        new FileResourceManager(new File("./src/web"), 100)).
+                        new FileResourceManager(new File(clientPath), 100)).
                             setDirectoryListingEnabled(true)))
             .build();
         server.start();
@@ -43,7 +47,20 @@ public class WebServer {
 
 
     public static void main(final String[] args) {
-        new WebServer(new Core(), 8080);
+        String host = "localhost";
+        int port = 8080;
+        
+        
+        if (args.length > 2) {            
+            host = args[2];
+        }
+        if (args.length > 1) {
+            port = Integer.parseInt(args[1]);                        
+        }
+        
+        System.out.println("Running: " + host + ":" + port);
+        
+        new WebServer(new Core(), host, port);
     }
 
 }

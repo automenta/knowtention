@@ -50,7 +50,11 @@ public class Core extends EventEmitter {
         return UUID.randomUUID().toString();
     }
 
-    Channel getChannel(WebSocketConnector.WebSocketConnection socket, String id) {
+    public Channel getChannel(String id) {
+        return getChannel(null, id);
+    }
+    
+    public Channel getChannel(WebSocketConnector.WebSocketConnection socket, String id) {
         Channel c = channels.get(id);
         
         //TODO check security permission

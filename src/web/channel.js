@@ -1,5 +1,8 @@
 var Channel = function (initialData, connection) {
 
+    var synchPeriodMS = 1500;
+
+    //set channel name
     if (typeof(initialData)==="string")
         initialData = { id: initialData };
     
@@ -23,7 +26,6 @@ var Channel = function (initialData, connection) {
         
     };
 
-    var synchPeriodMS = 1500;
 
     c.addNode = function(n) {
         

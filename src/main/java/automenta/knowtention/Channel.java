@@ -2,6 +2,7 @@ package automenta.knowtention;
 
 import automenta.knowtention.EventEmitter.EventObserver;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
@@ -14,6 +15,7 @@ import java.io.Serializable;
  * @see https://github.com/fge/json-patch
  */
 public class Channel extends EventEmitter implements Serializable {
+
 
     
     public abstract static class ChannelChange implements EventObserver {  
@@ -86,5 +88,20 @@ public class Channel extends EventEmitter implements Serializable {
         return getNode();
     }
     
+    /** add vertex */
+    public void addNode(ObjectNode vertex) {
+        if (!getNode().has("nodes")) {
+            getNode().put("nodes", Core.j.arrayNode());
+        }
+            
+        ArrayNode node = (ArrayNode) getNode().get("nodes");
+        node.add(vertex);
+        
+        emit(ChannelChange.class);
+    }
+    
+    public void addEdge(ObjectNode edge) {
+        
+    }
     
 }
