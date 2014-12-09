@@ -45,17 +45,17 @@ public class WebServer {
         
     }
 
-
+    /** usage: [port] [host] */
     public static void main(final String[] args) {
         String host = "localhost";
         int port = 8080;
         
         
         if (args.length > 2) {            
-            host = args[2];
+            host = args[1];
         }
         if (args.length > 1) {
-            port = Integer.parseInt(args[1]);                        
+            port = Integer.parseInt(args[0]);                        
         }
         
         System.out.println("Running: " + host + ":" + port);
