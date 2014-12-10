@@ -33,7 +33,7 @@ public class Core extends EventEmitter {
         super();
         
         Channel index = newChannel("index");
-        index.setNode("{ 'channels': [ 'a', 'b', 'c' ], 'users': [ 'x', 'y', 'z' ]  }");
+        //index.setNode("{ 'channels': [ 'a', 'b', 'c' ], 'users': [ 'x', 'y', 'z' ]  }");
         
     }
     
@@ -71,11 +71,12 @@ public class Core extends EventEmitter {
     
     final public static ObjectMapper json = new ObjectMapper()
             .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)            
+            .configure(JsonGenerator.Feature.QUOTE_FIELD_NAMES, true)
             .configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
     
-    final public static JsonNodeFactory j = new JsonNodeFactory(false);
+    final public static JsonNodeFactory newJson = new JsonNodeFactory(false);
     
     public static String toJSON(Object o) {
         try {
@@ -138,36 +139,36 @@ public class Core extends EventEmitter {
                 String op = k.get(0).textValue();
                 switch (op.charAt(0)) {
                     case '+':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "add");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));
                         break;
                     case '-':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "remove");
                         m.put("path", k.get(1));
                         break;
                     case '*':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "copy");
                         m.put("from", k.get(1));
                         m.put("path", k.get(2));
                         break;
                     case '/':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "move");
                         m.put("from", k.get(1));
                         m.put("path", k.get(2));
                         break;
                     case '?':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "test");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));
                         break;
                     case '=':
-                        m = new ObjectNode(j);
+                        m = new ObjectNode(newJson);
                         m.put("op", "replace");
                         m.put("path", k.get(1));
                         m.put("value", k.get(2));

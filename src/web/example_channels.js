@@ -16,7 +16,7 @@ function newExampleChannel1() {
         id: 'untitled_' + parseInt(Math.random() * 100),
         style: {
             'node': {
-                'content': 'data(id)',
+                'content': 'data(content)',
                 'text-valign': 'center',
                 'text-halign': 'center',
                 //'width': 'data(width)',

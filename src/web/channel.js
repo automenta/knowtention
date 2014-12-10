@@ -41,7 +41,7 @@ var Channel = function (initialData, connection) {
     
     c.commit = _.throttle(function () {
 
-        if (!this.socket.opened) {
+        if (!this.socket || !this.socket.opened) {
             return;
         }
 

@@ -1,6 +1,7 @@
 function spacegraph(ui, target, opt) {
     
     var commitPeriodMS = 500;
+    var suppressCommit = false;
     
     var ready = function() {
 
@@ -12,6 +13,9 @@ function spacegraph(ui, target, opt) {
         //http://js.cytoscape.org/#events/collection-events
         //
         this.on('data position select unselect add remove grab drag style', function (e) {
+            if (suppressCommit)
+                return;
+            
             /*console.log( evt.data.foo ); // 'bar'
              
              var node = evt.cyTarget;
@@ -201,9 +205,14 @@ function spacegraph(ui, target, opt) {
         var w = { data: d };
         if (d.style)
             w.css = d.style;
-        if (!d.position)
-            w.position = { x:0, y:0 };
-        if (!w.)
+        if (!d.style) {
+            //d.position = w.position = { x: "0px", y: "0px" };
+            d.style = w.css = { width: 16, height: 16 };
+            /*if (!w.css) w.css = { };
+            w.css.width = "16px";
+            w.css.height = "16px";*/
+        }
+        
         return w;
     }
 
@@ -342,7 +351,6 @@ function spacegraph(ui, target, opt) {
     };
     
     s.updateChannel = function(c) {
-        //fuckup (unnecessarily complexify with redundancy) the nodes/edges format so cytoscape can recognize it
         
         
         //TODO assign channel reference to each edge as done above with nodes
@@ -351,43 +359,52 @@ function spacegraph(ui, target, opt) {
             nodes: c.data.nodes ? c.data.nodes.map(wrapInData) : [], // c.data.nodes,
             edges: c.data.edges ? c.data.edges.map(wrapInData) : [] //c.data.edges
         };        
-                
-        
+            
+        var that = this;
+        this.batch(function() {
 
-        //fuckup (unnecessarily complexify with redundancy) the style format so cytoscape can recognize it
-        if (c.data.style) {
-            var s = [       ];
-            for (sel in c.data.style) {
-                s.push({
-                   selector: sel,
-                   css: c.data.style[sel]
-                });
+            suppressCommit = true;
+            
+            if (c.data.style) {
+                var s = [       ];
+                for (sel in c.data.style) {
+                    s.push({
+                       selector: sel,
+                       css: c.data.style[sel]
+                    });
+                }
+
+                if (s.length > 0) {
+                    //TODO merge style; this will replace it with c's        
+
+                    that.style().clear();        
+
+                    that.style().fromJson(s);
+                    that.style().update();
+                }
             }
 
-            if (s.length > 0) {
-                //TODO merge style; this will replace it with c's        
-
-                this.style().clear();        
-
-                this.style().fromJson(s);
-                this.style().update();
+/*
+            for (var i = 0; i < e.nodes.length; i++) {
+                var n = e.nodes[i];
+                if (n.data && n.data.id)
+                    that.remove('#' + n.data.id);
             }
-        }
-        
-        
-        this.add( e );
+            */
 
-        this.resize();
-        
-        /*
-        setTimeout(function() {
-            s.layout();
-        }, 0);
-        */
+            that.add( e );
+
+            that.resize();
+
+            suppressCommit = false;
+            
+        });
         
     };
     
     s.addChannel = function(c) {
+        
+        var nodesBefore = this.nodes().size();
         
         this.channels[c.id()] = c;
         
@@ -396,6 +413,16 @@ function spacegraph(ui, target, opt) {
       
         this.updateChannel(c);
        
+        
+        if (nodesBefore < this.nodes().size()) {
+            //http://js.cytoscape.org/#layouts
+            var layout = this.makeLayout({
+                name: 'cose'
+            });
+            layout.run();            
+        }
+        
+        
         ui.addChannel(this, c);
     };
     
@@ -440,7 +467,7 @@ function spacegraph(ui, target, opt) {
         }, {
             duration: 384
         });
-    }
+    };
         
     return s;
 };

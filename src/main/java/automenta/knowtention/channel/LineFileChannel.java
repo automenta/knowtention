@@ -7,7 +7,9 @@ package automenta.knowtention.channel;
 
 import automenta.knowtention.Channel;
 import automenta.knowtention.Channel.ChannelChange;
+import automenta.knowtention.Core;
 import automenta.knowtention.Runner;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -30,7 +32,7 @@ public class LineFileChannel extends Runner {
     long delayPeriodMS = 1000;
     private final File file;
     private boolean running = true;
-    int numLines = 10;
+    int numLines = 3;
     Channel channel;
 
     public LineFileChannel(Channel c, String filename) {        
@@ -171,15 +173,21 @@ public class LineFileChannel extends Runner {
     private synchronized void update(List<String> lines) {
         //long now = System.currentTimeMillis();
         
-        //TODO only remove the previously added nodes from this instance
-        channel.root().removeAll();
-        for (int i = 0; i < lines.size(); i++) {
-            String currentLine = lines.get(i);
-            String id = "n" + i;
-            String j = "{ 'id':'" + id + "', 'content': '" + currentLine + "' }";
-            channel.root().put(id, j);
-        }
-        channel.emitChange();
+        channel.tx(new Runnable() {
+            @Override public void run() {
+                for (int i = 0; i < lines.size(); i++) {
+                    String currentLine = lines.get(i);
+
+
+                    channel.addVertex(
+                            Core.newJson.objectNode().
+                                    put("id", channel.id + "_" + (currentLine.hashCode())).
+                                    put("content", currentLine)
+                    );
+                }
+            }            
+        });
+
     }
 
 }

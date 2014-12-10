@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
+import com.github.fge.jsonpatch.diff.JsonDiff;
 import java.io.IOException;
 import java.io.Serializable;
 
@@ -15,7 +16,9 @@ import java.io.Serializable;
  * @see https://github.com/fge/json-patch
  */
 public class Channel extends EventEmitter implements Serializable {
-
+    
+    private JsonNode prev;
+    private boolean inTransaction;
 
     
     public abstract static class ChannelChange implements EventObserver {  
@@ -28,7 +31,7 @@ public class Channel extends EventEmitter implements Serializable {
         
     }
     
-    protected ObjectNode node;
+    protected ObjectNode root;
     public final String id;
     transient private Core core;
 
@@ -36,33 +39,33 @@ public class Channel extends EventEmitter implements Serializable {
         super();
         this.id = id;
         this.core = core;
-        this.node = JsonNodeFactory.instance.objectNode();
-        this.node.put("id", id);
+        this.root = JsonNodeFactory.instance.objectNode();
+        this.root.put("id", id);
     }
     
     public Channel(Core core, ObjectNode node) {
         super();
-        this.node = node;
+        this.root = node;
         this.core = core;
         this.id = node.get("id").asText();
     }
 
     @Override
     public String toString() {
-        return node.toString();
+        return root.toString();
     }
 
     synchronized void applyPatch(JsonPatch patch) throws JsonPatchException {
-        setNode( (ObjectNode) patch.apply(node) );
+        set((ObjectNode) patch.apply(root) );
     }
     
-    synchronized public Channel setNode(ObjectNode newValue) {
-        //set or overwrite the 'id' field
-        newValue.put("id", id);
+    synchronized public Channel set(ObjectNode newRoot) {
         
-        this.node = newValue;
-        
-        emitChange();
+        tx(new Runnable() {
+            @Override public void run() {
+                root = newRoot;
+            }            
+        });
 
         return this;
     }
@@ -70,7 +73,7 @@ public class Channel extends EventEmitter implements Serializable {
     public Channel setNode(String jsonContent) {
         try {
             
-            setNode( Core.json.readValue(jsonContent, ObjectNode.class) );
+            set( Core.json.readValue(jsonContent, ObjectNode.class) );
             
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -78,27 +81,27 @@ public class Channel extends EventEmitter implements Serializable {
         return this;
     }
 
-    public ObjectNode root() {
-        return node;
+    public ObjectNode get() {
+        return root;
     }
     
     
     public JsonNode getSnapshot() {
-        return root();
+        return get().deepCopy();
     }
     
     /** add vertex */
-    public boolean addNode(ObjectNode vertex) {
+    public boolean addVertex(ObjectNode vertex) {
         if (vertex == null) return false;
         
-        if (!root().has("nodes")) {
-            root().put("nodes", Core.j.arrayNode());
+        if (!get().has("nodes")) {
+            get().put("nodes", Core.newJson.arrayNode());
         }
             
-        ArrayNode node = (ArrayNode) root().get("nodes");
+        ArrayNode node = (ArrayNode) get().get("nodes");
         node.add(vertex);
         
-        emitChange();
+        commit();
         return true;
     }
     
@@ -107,11 +110,50 @@ public class Channel extends EventEmitter implements Serializable {
     }
     
     /* patch may be null */
-    public void emitChange(ObjectNode patch) {
+    protected void emitChange(JsonNode patch) {
+        get().put("id",id);
+        
         core.emit(ChannelChange.class, this, patch);
-        emit(ChannelChange.class, this);
+        emit(ChannelChange.class, this, patch);
     }
-    public void emitChange() {
-        emitChange(null);        
+    
+    /** begin transaction */
+    public synchronized void tx(Runnable r) {
+        
+        inTransaction = true;
+        
+        //save snapshot
+        if (get()!=null)
+            prev = getSnapshot();
+        else
+            prev = null;
+        
+        r.run();
+        
+        inTransaction = false;
+        
+        commit();
+        
     }
+    
+    
+    /** end transaction */
+    public synchronized void commit() {
+        if (inTransaction)
+            return;
+        
+        JsonNode patch = null;
+        
+        if (prev!=null) {            
+            patch = JsonDiff.asJson(prev, get());
+            prev = null;
+        }
+        
+        //dont emit if patch is empty
+        if (patch!=null && patch.size() == 0)
+            return;
+        
+        emitChange(patch);
+    }
+    
 }

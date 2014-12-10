@@ -10,7 +10,6 @@ import automenta.knowtention.EventEmitter.EventObserver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.AbstractReceiveListener;
@@ -99,9 +98,9 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             public void event(Class event, Object[] args) {
                 if (event == ChannelChange.class) {
                     Channel c = (Channel)args[0];
-                    ObjectNode patch = null;
+                    JsonNode patch = null;
                     if (args.length > 1)
-                        patch = (ObjectNode)args[1];
+                        patch = (JsonNode)args[1];
                     
                     if (patch == null) {
                         //send entire object
@@ -129,14 +128,14 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             return c;
         }
         
-        protected void sendChannel(Channel c) {
-            ArrayNode a = Core.j.arrayNode();
+        protected void sendChannel(Channel c) {            
+            ArrayNode a = Core.newJson.arrayNode();
             a.add("channel.replace");
-            a.add(c.getSnapshot());
+            a.add(c.get());
             send(socket, a);            
         }
-        protected void sendPatch(String channelID, ObjectNode patch) {
-            ArrayNode a = Core.j.arrayNode();
+        protected void sendPatch(String channelID, JsonNode patch) {
+            ArrayNode a = Core.newJson.arrayNode();
             a.add("channel.patch");
             a.add(channelID);
             a.add(patch);
@@ -195,7 +194,7 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
          * send the complete copy of the channel
          */
         public void send(WebSocketChannel socket, Channel c) {
-            send(socket, c.node);
+            send(socket, c.root);
         }
 
         public void send(WebSocketChannel socket, Object object) {

@@ -57,10 +57,18 @@ function Websocket(conn) {
         'channel.replace': function(d) {
             var channelData = d[1];
                         
-            console.log('replace', hannelData);
+            console.log('replace', channelData);
             
-            //{ id: channelData.id, data:channelData}
-            s.addChannel(new Channel( channelData, conn ));
+            var chanID = channelData.id;
+            var chan = conn.subs[chanID];
+            if (!chan) {
+                chan = new Channel( channelData, conn );
+                s.addChannel(chan);
+            }
+            else {
+                chan.data = channelData;
+                s.addChannel(chan);
+            }
         },
         'channel.patch': function(d) {
             var channelID = d[1];
@@ -68,11 +76,12 @@ function Websocket(conn) {
             
                         
             //{ id: channelData.id, data:channelData}
-            var c = subs[channelID];
+            var c = conn.subs[channelID];
             if (c) {
-                jsonpatch.patch(c.data, patch);
-                s.addChannel(c);
-                console.log('patch', patch);
+                console.log('patch', patch, c, c.data);
+
+                jsonpatch.apply(c.data, patch);
+                s.addChannel(c);                
             }
             else {
                 console.log('error patching', patch);
