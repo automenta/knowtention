@@ -13,6 +13,7 @@ function spacegraph(ui, target, opt) {
         //http://js.cytoscape.org/#events/collection-events
         //
         this.on('data position select unselect add remove grab drag style', function (e) {
+            
             if (suppressCommit)
                 return;
             
@@ -200,13 +201,15 @@ function spacegraph(ui, target, opt) {
     
     s.channels = { };
     s.widgets = new WeakMap(); //node -> widget
+    s.currentLayout = {
+        name: 'cose'
+    };
     
     function wrapInData(d) {
         var w = { data: d };
         if (d.style)
             w.css = d.style;
         if (!d.style) {
-            //d.position = w.position = { x: "0px", y: "0px" };
             d.style = w.css = { width: 16, height: 16 };
             /*if (!w.css) w.css = { };
             w.css.width = "16px";
@@ -394,6 +397,18 @@ function spacegraph(ui, target, opt) {
 
             that.add( e );
 
+            //add position if none exist
+            for (var i = 0; i < e.nodes.length; i++) {
+                var n = e.nodes[i];
+                if (n.data && n.data.id) {
+                    var nn = that.nodes('#' + n.data.id);
+                    var ep = nn.position();
+                    if (!ep || !ep.x)
+                        nn.position({ x: 0, y: 0 });
+                }                    
+            }
+            
+
             that.resize();
 
             suppressCommit = false;
@@ -402,9 +417,21 @@ function spacegraph(ui, target, opt) {
         
     };
     
+    /** set and force layout update */
+    s.setLayout = function(l){
+
+        this.currentLayout = l;
+        delete this.currentLayout.eles;
+        
+        //http://js.cytoscape.org/#layouts
+        /*var layout = this.makeLayout(this.currentLayout);
+        layout.run();            */
+        this.layout(this.currentLayout);
+    };
+    
     s.addChannel = function(c) {
         
-        var nodesBefore = this.nodes().size();
+        //var nodesBefore = this.nodes().size();
         
         this.channels[c.id()] = c;
         
@@ -413,16 +440,10 @@ function spacegraph(ui, target, opt) {
       
         this.updateChannel(c);
        
-        
-        if (nodesBefore < this.nodes().size()) {
-            //http://js.cytoscape.org/#layouts
-            var layout = this.makeLayout({
-                name: 'cose'
-            });
-            layout.run();            
-        }
-        
-        
+        //if (nodesBefore < this.nodes().size()) {
+            this.setLayout(s.currentLayout);        
+        //}        
+
         ui.addChannel(this, c);
     };
     

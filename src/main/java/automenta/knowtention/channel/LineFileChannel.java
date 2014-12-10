@@ -60,6 +60,7 @@ public class LineFileChannel extends Runner {
             } catch (InterruptedException ex) {
             }
 
+            lines.clear();
             try {
                 fileInputStream = new FileInputStream(file);
                 
@@ -84,12 +85,12 @@ public class LineFileChannel extends Runner {
                     char c = (char) buffer.get((int) i);
                     
                     if (c == '\n') {
-                        if (count == numLines) {
-                            break;
-                        }
                         count++;
                         builder.reverse();
                         lines.addFirst(builder.toString());
+                        if (count == numLines) {
+                            break;
+                        }
                         builder.setLength(0);
                     }
                     else
@@ -115,7 +116,7 @@ public class LineFileChannel extends Runner {
         }
     }
 
-    public void run2() {
+/*    public void run2() {
 
         BufferedReader input = null;
 
@@ -155,7 +156,7 @@ public class LineFileChannel extends Runner {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
-    }
+    }*/
 
     protected void onNewLine(String currentLine) {
 //        long now = System.currentTimeMillis();

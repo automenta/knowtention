@@ -45,20 +45,23 @@ var Channel = function (initialData, connection) {
             return;
         }
 
-        //get positions
-        var eles = this.ui.elements();
-        var P = {};
-        for (var i = 0; i < eles.length; i++) {
-            var ele = eles[i];
-            //console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
-            var p = ele.position();
-            var x = p.x;
-            if (!isFinite(x))
-                continue;
-            var y = p.y;
-            P[ele.id()] = [parseInt(x), parseInt(y)];
+        /** include positions in update only if p is defined and is object */
+        if (this.data.p && typeof(this.data.p)==="object") {
+            //get positions
+            var eles = this.ui.elements();
+            var P = {};
+            for (var i = 0; i < eles.length; i++) {
+                var ele = eles[i];
+                //console.log( ele.id() + ' is ' + ( ele.selected() ? 'selected' : 'not selected' ) );
+                var p = ele.position();
+                var x = p.x;
+                if (!isFinite(x))
+                    continue;
+                var y = p.y;
+                P[ele.id()] = [parseInt(x), parseInt(y)];
+            }
+            this.data.p = P; //positions; using 1 character because this is updated frequently
         }
-        this.data.p = P; //positions; using 1 character because this is updated frequently
 
         //https://github.com/Starcounter-Jack/Fast-JSON-Patch
         var diff = jsonpatch.compare(this.prev, this.data);
