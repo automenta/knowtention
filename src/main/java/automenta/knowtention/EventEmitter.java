@@ -165,4 +165,10 @@ public class EventEmitter {
 //            });
 //        }
 //    }
+
+    public Map<Class<?>, List<EventObserver>> getObservers() {
+        return events;
+    }
+    
+    
 }

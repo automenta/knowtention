@@ -54,7 +54,6 @@ public class Channel extends EventEmitter implements Serializable {
 
     synchronized void applyPatch(JsonPatch patch) throws JsonPatchException {
         setNode( (ObjectNode) patch.apply(node) );
-        core.emit(ChannelChange.class, this, patch);
     }
     
     synchronized public Channel setNode(ObjectNode newValue) {
@@ -63,8 +62,8 @@ public class Channel extends EventEmitter implements Serializable {
         
         this.node = newValue;
         
-        emit(ChannelChange.class);
-        
+        emitChange();
+
         return this;
     }
     
@@ -79,29 +78,40 @@ public class Channel extends EventEmitter implements Serializable {
         return this;
     }
 
-    public ObjectNode getNode() {
+    public ObjectNode root() {
         return node;
     }
     
     
     public JsonNode getSnapshot() {
-        return getNode();
+        return root();
     }
     
     /** add vertex */
-    public void addNode(ObjectNode vertex) {
-        if (!getNode().has("nodes")) {
-            getNode().put("nodes", Core.j.arrayNode());
+    public boolean addNode(ObjectNode vertex) {
+        if (vertex == null) return false;
+        
+        if (!root().has("nodes")) {
+            root().put("nodes", Core.j.arrayNode());
         }
             
-        ArrayNode node = (ArrayNode) getNode().get("nodes");
+        ArrayNode node = (ArrayNode) root().get("nodes");
         node.add(vertex);
         
-        emit(ChannelChange.class);
+        emitChange();
+        return true;
     }
     
     public void addEdge(ObjectNode edge) {
         
     }
     
+    /* patch may be null */
+    public void emitChange(ObjectNode patch) {
+        core.emit(ChannelChange.class, this, patch);
+        emit(ChannelChange.class, this);
+    }
+    public void emitChange() {
+        emitChange(null);        
+    }
 }

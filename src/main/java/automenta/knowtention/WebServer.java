@@ -5,6 +5,7 @@
  */
 package automenta.knowtention;
 
+import automenta.knowtention.channel.LineFileChannel;
 import static io.undertow.Handlers.path;
 import static io.undertow.Handlers.resource;
 import static io.undertow.Handlers.websocket;
@@ -60,7 +61,11 @@ public class WebServer {
         
         System.out.println("Running: " + host + ":" + port);
         
-        new WebServer(new Core(), host, port);
+        WebServer w = new WebServer(new Core(), host, port);
+        
+        
+        new Thread(
+                new LineFileChannel(w.core.getChannel("chat"), "/home/me/.xchat2/scrollback/FreeNode/#netention.txt") ).start();
     }
 
 }

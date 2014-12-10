@@ -19,7 +19,7 @@ var Channel = function (initialData, connection) {
     c.init = function (ui) {
         this.ui = ui;
 
-        this.commit();
+        //this.commit();
     };
     
     c.destroy = function() {

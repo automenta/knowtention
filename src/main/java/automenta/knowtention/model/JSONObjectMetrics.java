@@ -30,7 +30,7 @@ public class JSONObjectMetrics implements Serializable {
     private long stringLengthSum;
     
     public JSONObjectMetrics(Channel c) {
-        this(c.getNode());  
+        this(c.root());  
         
         this.channel = c.id;
     }

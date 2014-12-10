@@ -48,22 +48,35 @@ function Websocket(conn) {
     conn.send = function(data) {
         var jdata = /*jsonUnquote*/( JSON.stringify(data) );
         
-        console.log('send:', jdata.length, jdata);
+        //console.log('send:', jdata.length, jdata);
 
         this.socket.send(jdata);
     };
 
     conn.handler = {
-        channel: function(d) {
+        'channel.replace': function(d) {
             var channelData = d[1];
-            
-            //snapshot update
-            notify(this, d);
-            
-            console.log(channelData);
+                        
+            console.log('replace', hannelData);
             
             //{ id: channelData.id, data:channelData}
             s.addChannel(new Channel( channelData, conn ));
+        },
+        'channel.patch': function(d) {
+            var channelID = d[1];
+            var patch = d[2];
+            
+                        
+            //{ id: channelData.id, data:channelData}
+            var c = subs[channelID];
+            if (c) {
+                jsonpatch.patch(c.data, patch);
+                s.addChannel(c);
+                console.log('patch', patch);
+            }
+            else {
+                console.log('error patching', patch);
+            }
         }
 
                 

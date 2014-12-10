@@ -10,6 +10,7 @@ import automenta.knowtention.EventEmitter.EventObserver;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.fge.jsonpatch.JsonPatch;
 import io.undertow.websockets.WebSocketConnectionCallback;
 import io.undertow.websockets.core.AbstractReceiveListener;
@@ -40,12 +41,14 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
     public class WebSocketConnection extends AbstractReceiveListener implements WebSocketCallback<Void> {
 
         final Map<String, Channel> channels = new HashMap();
+        private final WebSocketChannel socket;
 
         public WebSocketConnection(WebSocketChannel socket) {
             super();
 
             System.out.println(socket.getPeerAddress() + " connected websocket");
 
+            this.socket = socket;
             /*Channel c = core.newChannel();
             addChannel(c);
 
@@ -94,6 +97,20 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
 
             @Override
             public void event(Class event, Object[] args) {
+                if (event == ChannelChange.class) {
+                    Channel c = (Channel)args[0];
+                    ObjectNode patch = null;
+                    if (args.length > 1)
+                        patch = (ObjectNode)args[1];
+                    
+                    if (patch == null) {
+                        //send entire object
+                        sendChannel(c);
+                    }
+                    else {
+                        sendPatch(c.id, patch);
+                    }
+                }
             }
             
         };
@@ -112,16 +129,26 @@ public class WebSocketConnector implements WebSocketConnectionCallback {
             return c;
         }
         
+        protected void sendChannel(Channel c) {
+            ArrayNode a = Core.j.arrayNode();
+            a.add("channel.replace");
+            a.add(c.getSnapshot());
+            send(socket, a);            
+        }
+        protected void sendPatch(String channelID, ObjectNode patch) {
+            ArrayNode a = Core.j.arrayNode();
+            a.add("channel.patch");
+            a.add(channelID);
+            a.add(patch);
+            send(socket, a);            
+        }
+        
         /** 'on', subscribe */
         protected void onOn(JsonNode j, WebSocketChannel socket) {
             Channel c = setChannelSubscription(j, socket, true);
             if (c==null) return;
             
-            //send initial state
-            ArrayNode a = Core.j.arrayNode();
-            a.add("channel");
-            a.add(c.getSnapshot());
-            send(socket, a);
+            sendChannel(c);
         }
         
         /** 'off', unsubscribe */

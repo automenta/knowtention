@@ -1,5 +1,7 @@
 function spacegraph(ui, target, opt) {
     
+    var commitPeriodMS = 500;
+    
     var ready = function() {
 
         var that = this;
@@ -16,10 +18,15 @@ function spacegraph(ui, target, opt) {
              console.log( 'tapped ' + node.id() );*/
 
             var target = e.cyTarget;
-            if (widget(target))
-                queueWidgetUpdate(target);
-
-            this.commit();
+            if (target) {
+                if (widget(target))
+                    queueWidgetUpdate(target);
+                
+                    
+                //console.log(this, that, target);
+                that.commit();
+            }
+            
         });
         
 
@@ -194,6 +201,9 @@ function spacegraph(ui, target, opt) {
         var w = { data: d };
         if (d.style)
             w.css = d.style;
+        if (!d.position)
+            w.position = { x:0, y:0 };
+        if (!w.)
         return w;
     }
 
@@ -334,11 +344,16 @@ function spacegraph(ui, target, opt) {
     s.updateChannel = function(c) {
         //fuckup (unnecessarily complexify with redundancy) the nodes/edges format so cytoscape can recognize it
         
+        
+        //TODO assign channel reference to each edge as done above with nodes
+        
         var e = {
             nodes: c.data.nodes ? c.data.nodes.map(wrapInData) : [], // c.data.nodes,
             edges: c.data.edges ? c.data.edges.map(wrapInData) : [] //c.data.edges
         };        
                 
+        
+
         //fuckup (unnecessarily complexify with redundancy) the style format so cytoscape can recognize it
         if (c.data.style) {
             var s = [       ];
@@ -402,12 +417,12 @@ function spacegraph(ui, target, opt) {
         ui.removeChannel(c);
     };
     
-    s.commit = function() {
+    s.commit = _.throttle(function() {
         for (i in this.channels) {
             var c = this.channels[i];
             c.commit();
         }
-    };
+    }, commitPeriodMS);
 
     s.zoomTo = function(ele) {
         var pos;

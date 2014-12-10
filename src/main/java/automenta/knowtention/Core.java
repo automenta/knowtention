@@ -5,6 +5,7 @@
  */
 package automenta.knowtention;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -23,6 +24,7 @@ import java.util.UUID;
  *
  */
 public class Core extends EventEmitter {
+
 
 
     final Map<String, Channel> channels = new HashMap();
@@ -70,6 +72,7 @@ public class Core extends EventEmitter {
     final public static ObjectMapper json = new ObjectMapper()
             .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
             .configure(JsonParser.Feature.ALLOW_SINGLE_QUOTES, true)
+            .configure(JsonGenerator.Feature.ESCAPE_NON_ASCII, true)
             .configure(JsonParser.Feature.ALLOW_UNQUOTED_FIELD_NAMES, true);
     
     final public static JsonNodeFactory j = new JsonNodeFactory(false);
@@ -87,6 +90,17 @@ public class Core extends EventEmitter {
         }
     }
 
+    public static ObjectNode fromJSON(String x) {
+        try {
+            
+            return json.readValue(x, ObjectNode.class);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            return null;
+        }
+    }
+
+    
     /** adapter for JSONPatch+ */
     static JsonPatch getPatch(ArrayNode patch) throws IOException {
         
