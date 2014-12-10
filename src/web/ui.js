@@ -12,6 +12,32 @@
 function UI(e) {
     var u = {
     };
+    
+    $('#ChannelMenu').append($('<a href="#">F</a>').click(function() {
+        s.setLayout({
+           name: 'cose' 
+        });
+    }));
+    $('#ChannelMenu').append($('<a href="#">G</a>').click(function() {
+        s.setLayout({
+           name: 'grid' 
+        });
+    }));
+    $('#ChannelMenu').append($('<a href="#">C</a>').click(function() {
+        s.setLayout({
+           name: 'concentric' 
+        });
+    }));
+    $('#ChannelMenu').append($('<a href="#">T</a>').click(function() {
+        s.setLayout({
+           name: 'breadthfirst' 
+        });
+    }));
+    $('#ChannelMenu').append($('<a href="#">R</a>').click(function() {
+        s.setLayout({
+           name: 'random' 
+        });
+    }));
 
     var newContentTypes = ['text', 'data', 'map', 'timeline', 'sketch', 'www'];
 

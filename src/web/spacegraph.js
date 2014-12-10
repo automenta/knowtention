@@ -209,11 +209,9 @@ function spacegraph(ui, target, opt) {
         var w = { data: d };
         if (d.style)
             w.css = d.style;
-        if (!d.style) {
-            d.style = w.css = { width: 16, height: 16 };
-            /*if (!w.css) w.css = { };
-            w.css.width = "16px";
-            w.css.height = "16px";*/
+        else {
+            //style defaults
+            //w.css = { width: 16, height: 16 };
         }
         
         return w;

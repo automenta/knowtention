@@ -49,14 +49,27 @@ function newExampleChannel1() {
                     shape: 'triangle',
                     height: 24,
                     width: 16                
-                }, 
+                }
             },
-            /*{id: 'a', parent: 'b',
-                style: { content: '.', shape: 'triangle', width: '8', height: '8' }
+            
+            {id: 'p', 
+                style: { 
+                    shape: 'rectangle',
+                    height: 60,
+                    width: 30
+                }
             },
-            {id: 'c', parent: 'b',
-                style: { content: '.', shape: 'triangle', width: '8', height: '8' }
+            
+            /*{id: 'b1', parent: 'p',
+                style: { _content: 'x', shape: 'triangle', height: 4, width: 4 }
             },*/
+            /*{id: 'b2', parent: 'p',
+                style: { _content: 'y', shape: 'triangle', width: 8, height: 8 }
+            },
+            {id: 'b3', parent: 'p',
+                style: { _content: 'z', shape: 'triangle', width: 8, height: 8 }
+            },
+            */
             /*{
                     id: 'serial' + parseInt(Math.random()*100),
                     width: 16,
@@ -123,7 +136,9 @@ function newExampleChannel1() {
                     'line-width': '44'
                 }
             },
-            {id: 'db', source: 'd', target: 'b'}
+            {id: 'db', source: 'd', target: 'b'},
+            //{id: 'b1b2', source: 'b1', target: 'b2'},
+            //{id: 'b1b3', source: 'b1', target: 'b3'}
             //{id: 'eb', source: 'e', target: 'b'}
         ]
     };
