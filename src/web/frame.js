@@ -134,6 +134,10 @@ function initFrameDrag(nodeFrame) {
                 frameEle.data('resizing', true);
                 
                 var pos = node.position();
+                if (!pos) {
+                    console.error('node ', node, 'has no position');
+                    return;
+                }
                 this.originalNode = node;
                 this.originalPos = [ parseFloat(pos.x), parseFloat(pos.y) ];
                 this.originalSize = [ node.width(), node.height(), node.renderedWidth(), node.renderedHeight() ];

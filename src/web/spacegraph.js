@@ -212,8 +212,7 @@ function spacegraph(ui, target, opt) {
         if (d.style)
             w.css = d.style;
         else {
-            //style defaults
-            //w.css = { width: 16, height: 16 };
+            //style defaults?
         }
         
         return w;
@@ -511,14 +510,14 @@ function spacegraph(ui, target, opt) {
             n = {
                 id: 'txt' + parseInt(Math.random() * 1000),
                 style: {
-                    width: 32,
+                    width: 64,
                     height: 32
                 },
                 widget: {
-                    html: "<div contenteditable='true' class='editable' style='overflow: auto; resizable: both'></div>",
+                    html: "<div contenteditable='true' class='editable' style='overflow: auto; resize: both; width: 100%; height: 100%;'></div>",
                     scale: 1.0,
-                    style: {width: '300px', height: '300px'},
-                    padding: 0
+                    style: {width: '300px', height: '150px'},
+                    padding: 0.1
                 }
             };
         }

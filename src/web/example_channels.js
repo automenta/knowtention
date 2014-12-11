@@ -19,8 +19,6 @@ function newExampleChannel1() {
                 'content': 'data(content)',
                 'text-valign': 'center',
                 'text-halign': 'center',
-                //'width': 'data(width)',
-                //'height': 'data(height)',
                 'shape': 'rectangle'
             },
             '$node > node': {
