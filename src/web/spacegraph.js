@@ -29,7 +29,7 @@ function spacegraph(ui, target, opt) {
                 
                     
                 //console.log(this, that, target);
-                that.commit();
+                //that.commit();
             }
             
         });
@@ -53,18 +53,22 @@ function spacegraph(ui, target, opt) {
             baseRedraw.apply(this, arguments);
 
             frame.hoverUpdate();
+            
             updateWidgets();
         };
+
 
         var baseDrawNode = this._private.renderer.drawNode;
         this._private.renderer.drawNode = function (context, node, drawOverlayInstead) {
             baseDrawNode.apply(this, arguments);
 
             if (widget(node)) {
+                
                 queueWidgetUpdate(node);
                 if (frame.hovered === node)
                     setTimeout(frame.hoverUpdate, 0);
             }
+            
         };
 
         function widget(node) {
@@ -76,7 +80,7 @@ function spacegraph(ui, target, opt) {
         }
 
         var that = this;
-        var updateWidgets = _.throttle(function () {
+        var updateWidgets = this.updateWidgets = _.throttle(function () {
 
             var nextWidgetsToUpdate = _.values(widgetsToUpdate);
 
@@ -84,7 +88,7 @@ function spacegraph(ui, target, opt) {
 
                 setTimeout(function () {
                     widgetsToUpdate = {};
-
+                    
                     for (var i = 0; i < nextWidgetsToUpdate.length; i++) {
                         var node = nextWidgetsToUpdate[i];
                         that.updateNodeWidget(node);
@@ -150,57 +154,55 @@ function spacegraph(ui, target, opt) {
     
     
     // EdgeHandler: the default values of each option are outlined below:
-    var ehDefaults  = {
-      preview: true, // whether to show added edges preview before releasing selection
-      handleSize: 3, // the size of the edge handle put on nodes
-      handleColor: "rgba(255, 0, 0, 0.5)", // the colour of the handle and the line drawn from it
-      handleLineType: 'ghost', // can be 'ghost' for real edge, 'straight' for a straight line, or 'draw' for a draw-as-you-go line
-      handleLineWidth: 1, // width of handle line in pixels
-      handleNodes: 'node', // selector/filter function for whether edges can be made from a given node
-      hoverDelay: 150, // time spend over a target node before it is considered a target selection
-      cxt: true, // whether cxt events trigger edgehandles (useful on touch)
-      enabled: true, // whether to start the plugin in the enabled state
-      toggleOffOnLeave: true, // whether an edge is cancelled by leaving a node (true), or whether you need to go over again to cancel (false; allows multiple edges in one pass)
-      edgeType: function( sourceNode, targetNode ){
-        // can return 'flat' for flat edges between nodes or 'node' for intermediate node between them
-        // returning null/undefined means an edge can't be added between the two nodes
-        return 'flat'; 
-      },
-      loopAllowed: function( node ){
-        // for the specified node, return whether edges from itself to itself are allowed
-        return false;
-      },
-      nodeLoopOffset: -50, // offset for edgeType: 'node' loops
-      nodeParams: function( sourceNode, targetNode ){
-        // for edges between the specified source and target
-        // return element object to be passed to cy.add() for intermediary node
-        return {};
-      },
-      edgeParams: function( sourceNode, targetNode, i ){
-        // for edges between the specified source and target
-        // return element object to be passed to cy.add() for edge
-        // NB: i indicates edge index in case of edgeType: 'node'
-        return {};
-      },
-      start: function( sourceNode ){
-        // fired when edgehandles interaction starts (drag on handle)
-      },
-      complete: function( sourceNode, targetNodes, addedEntities ){
-        // fired when edgehandles is done and entities are added
-      },
-      stop: function( sourceNode ){
-        // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
-      }
+    var ehDefaults = {
+        preview: true, // whether to show added edges preview before releasing selection
+        handleSize: 3, // the size of the edge handle put on nodes
+        handleColor: "rgba(255, 0, 0, 0.5)", // the colour of the handle and the line drawn from it
+        handleLineType: 'ghost', // can be 'ghost' for real edge, 'straight' for a straight line, or 'draw' for a draw-as-you-go line
+        handleLineWidth: 1, // width of handle line in pixels
+        handleNodes: 'node', // selector/filter function for whether edges can be made from a given node
+        hoverDelay: 150, // time spend over a target node before it is considered a target selection
+        cxt: true, // whether cxt events trigger edgehandles (useful on touch)
+        enabled: true, // whether to start the plugin in the enabled state
+        toggleOffOnLeave: true, // whether an edge is cancelled by leaving a node (true), or whether you need to go over again to cancel (false; allows multiple edges in one pass)
+        edgeType: function (sourceNode, targetNode) {
+            // can return 'flat' for flat edges between nodes or 'node' for intermediate node between them
+            // returning null/undefined means an edge can't be added between the two nodes
+            return 'flat';
+        },
+        loopAllowed: function (node) {
+            // for the specified node, return whether edges from itself to itself are allowed
+            return false;
+        },
+        nodeLoopOffset: -50, // offset for edgeType: 'node' loops
+        nodeParams: function (sourceNode, targetNode) {
+            // for edges between the specified source and target
+            // return element object to be passed to cy.add() for intermediary node
+            return {};
+        },
+        edgeParams: function (sourceNode, targetNode, i) {
+            // for edges between the specified source and target
+            // return element object to be passed to cy.add() for edge
+            // NB: i indicates edge index in case of edgeType: 'node'
+            return {};
+        },
+        start: function (sourceNode) {
+            // fired when edgehandles interaction starts (drag on handle)
+        },
+        complete: function (sourceNode, targetNodes, addedEntities) {
+            // fired when edgehandles is done and entities are added
+        },
+        stop: function (sourceNode) {
+            // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
+        }
     };
 
     s.edgehandles( ehDefaults );    
     
     
-    
-    
-    
     s.channels = { };
-    s.widgets = new WeakMap(); //node -> widget
+    s.defaultChannel = undefined;
+    s.widgets = new WeakMap(); //node -> widget DOM element
     s.currentLayout = {
         name: 'cose'
     };
@@ -217,10 +219,22 @@ function spacegraph(ui, target, opt) {
         return w;
     }
 
+    
     s.updateNodeWidget = function(node) {
         var widget = node.data().widget; //html string
-        var w = this.widgets.get(node);
+        var wEle = this.widgets.get(node);
+        var w = $(wEle);
 
+        
+        if (node.data().removed) {
+            if (wEle) {
+                $('#widget_' + node.id()).remove();
+                
+                this.widgets.delete(node);
+            }
+            return;
+        }
+        
         function setWidgetHTML() {
             w.html(widget.html).data('when', Date.now());
         }
@@ -234,15 +248,15 @@ function spacegraph(ui, target, opt) {
 
         var that = this;
         
-        if (!w) {
+        if (!wEle) {
 
             var style = widget.style || {};
             style.position = 'fixed';
             style.transformOrigin = '0 0';
 
-            //var wid = 'widget_' + node.getID();
+            var wid = 'widget_' + node.id();
             w = $('<div></div>').
-                    //attr('id', wid).
+                    attr('id', wid).
                     addClass('widget').
                     css(style).
                     appendTo('#widgets');
@@ -267,7 +281,7 @@ function spacegraph(ui, target, opt) {
             //TODO use MutationObservers
             w.bind("DOMSubtreeModified DOMAttrModified", commitWidgetChange); // Listen DOM changes
 
-            this.widgets.set(node, w);
+            this.widgets.set(node, w[0]);
         }
 
         this.positionNodeHTML(node, w, widget.scale, widget.padding, widget.minPixels);
@@ -432,17 +446,22 @@ function spacegraph(ui, target, opt) {
         //var nodesBefore = this.nodes().size();
         
         this.channels[c.id()] = c;
+    
+        if (!s.defaultChannel) {
+            console.log('Default channel: ' + c.id());
+            s.defaultChannel = c;
+        }
         
         if (c.ui!==this)
             c.init(this);
       
         this.updateChannel(c);
        
-        //if (nodesBefore < this.nodes().size()) {
-            this.setLayout(s.currentLayout);        
-        //}        
-
+        this.setLayout(s.currentLayout);        
+    
         ui.addChannel(this, c);
+        
+        
     };
     
     s.removeChannel = function(c) {
@@ -469,6 +488,106 @@ function spacegraph(ui, target, opt) {
             c.commit();
         }
     }, commitPeriodMS);
+
+        // ----------------------
+
+    s.on('cxttapstart', function(e) {
+        var target = e.cyTarget;
+
+        if (!target) {                
+            this.zoomTo();
+        }
+        else {
+            this.zoomTo(target);
+        }
+    });
+    
+    s.newNode = function(c, type, pos) {
+
+        notify('Adding: ' + type);
+
+        var n = null;
+        if (type === 'text') {
+            n = {
+                id: 'txt' + parseInt(Math.random() * 1000),
+                style: {
+                    width: 32,
+                    height: 32
+                },
+                widget: {
+                    html: "<div contenteditable='true' class='editable' style='overflow: auto; resizable: both'></div>",
+                    scale: 1.0,
+                    style: {width: '300px', height: '300px'},
+                    padding: 0
+                }
+            };
+        }
+        else if (type === 'www') {
+            var uurrll = v.val();
+            if (!uurrll.indexOf('http://') === 0)
+                uurrll = 'http://' + uurrll;
+
+            n = {
+                id: 'www' + parseInt(Math.random() * 1000),
+                style: {
+                    width: 64,
+                    height: 64
+                },
+                widget: {
+                    html: '<iframe width="600px" height="600px" src="' + uurrll + '"></iframe>',
+                    scale: 1.0,
+                    style: {width: '600px', height: '600px'},
+                    padding: 0.1
+                }
+            };
+        }
+
+        //            
+
+        if (n) {
+
+            c.addNode(n);
+            
+            this.updateChannel(c);
+
+            if (!pos) {
+                var ex = this.extent();
+                var cx = 0.5 * (ex.x1 + ex.x2);
+                var cy = 0.5 * (ex.y1 + ex.y2);
+                pos = {x: cx, y: cy};
+            }
+            this.getElementById(n.id).position(pos);
+
+            c.commit();
+
+        }
+        
+    };
+    
+    s.removeNode = function(n) {
+        for (var ch in this.channels) {
+            var c = this.channels[ch];
+            
+            if (c.removeNode(n)) {
+                c.commit();
+            }
+        }
+        
+        n.remove();
+    };
+    
+    
+    s.on('click', function(e) {
+        var target = e.cyTarget;
+        
+        if (target.isNode) {
+            //hit an element (because its isNode function is defined)
+        }
+        else {
+            //hit background
+            this.newNode(s.defaultChannel, 'text', e.cyPosition);
+        }
+    });    
 
     s.zoomTo = function(ele) {
         var pos;

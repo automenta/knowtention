@@ -27,6 +27,21 @@ var Channel = function (initialData, connection) {
     };
 
 
+    c.removeNode = function(n) {
+        n.data().removed = true;
+
+        var removedAny = false;
+        var id = n.data().id;
+        this.data.nodes = _.filter(this.data.nodes, function(e) {
+            if (e.id === id) {
+                removedAny = true;
+                return false;
+            }
+        });
+                        
+        return removedAny;
+    };
+    
     c.addNode = function(n) {
         
         if (!this.data)

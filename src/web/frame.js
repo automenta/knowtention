@@ -2,6 +2,7 @@ function NodeFrame(spacegraph) {
 
     var f = {
         hoverUpdate: function() { /* implemented below */},
+        hide: function() { /* see below */ },
         hovered: null
     };
     
@@ -9,7 +10,7 @@ function NodeFrame(spacegraph) {
        
         $('#widgets').append( x );
 
-        var frame = $('#nodeframe');
+        var frameEle = $('#nodeframe');
         f.hovered = null;
         var frameVisible = false;
         var frameTimeToFade = 2000; //ms
@@ -17,13 +18,13 @@ function NodeFrame(spacegraph) {
         var frameNodeScale = 1;
         var frameNodeMargin = -0.25;
 
-        initFrameDrag();
+        initFrameDrag(f);
 
 
         //http://threedubmedia.com/code/event/drag/demo/resize2
 
         spacegraph.on('pan zoom', function(e) {
-            setTimeout(hoverUpdate, 0);
+            setTimeout(f.hoverUpdate, 0);
         });
 
         spacegraph.on('mouseover mouseout mousemove', function(e) {
@@ -31,7 +32,7 @@ function NodeFrame(spacegraph) {
             var target = e.cyTarget;
             var over = (e.type !== "mouseout");
 
-            if (frame.data('resizing'))
+            if (frameEle.data('resizing'))
                 over = true;                
 
             if (target && target.isNode && target.isNode()) {                
@@ -42,34 +43,43 @@ function NodeFrame(spacegraph) {
                 }
 
                 if (f.hovered!==target) {
-                    frame.hide();
+                    frameEle.hide();
                     frameVisible = true;
-                    frame.fadeIn();
+                    frameEle.fadeIn();
                     f.hovered = target;
                 }
             } else {
                 frameVisible = false;
             }
 
-            setTimeout(hoverUpdate, 0);
+            setTimeout(f.hoverUpdate, 0);
 
         });
 
-        function hoverUpdate() {
-            var currentlyVisible = frame.is(':visible');
+        f.hide = function() {
+            frameVisible = false;
+            this.hovered = null;
+            this.hoverUpdate();   
+            
+            //TODO fadeOut almost works, but not completely. so hide() for now
+            frameEle.hide();
+        };
+
+        f.hoverUpdate = function() {
+            var currentlyVisible = frameEle.is(':visible');
                         
             if (frameVisible) {
                 if (!currentlyVisible)
-                    frame.fadeIn();
+                    frameEle.fadeIn();
             }
             else {                
                 if ((frameHiding===-1) && (currentlyVisible)) {
                     frameHiding = setTimeout(function() {
                         //if still set for hiding, actually hide it
                         if (!frameVisible)
-                            frame.fadeOut(function() {
+                            frameEle.fadeOut(function() {
                                 f.hovered = null;
-                                frame.data('node', null);
+                                frameEle.data('node', null);
                                 frameHiding = -1;
                             });
 
@@ -78,24 +88,12 @@ function NodeFrame(spacegraph) {
             }
             
             if (currentlyVisible && f.hovered) {
-                spacegraph.positionNodeHTML(f.hovered, frame, frameNodeScale, frameNodeMargin);
-                frame.data('node', f.hovered);
+                spacegraph.positionNodeHTML(f.hovered, frameEle, frameNodeScale, frameNodeMargin);
+                frameEle.data('node', f.hovered);
             }
 
-        }
+        };
 
-        // ----------------------
-
-        spacegraph.on('cxttapstart', function(e) {
-            var target = e.cyTarget;
-
-            if (!target) {                
-                spacegraph.zoomTo();
-            }
-            else {
-                spacegraph.zoomTo(target);
-            }
-        });
 
 
     });
@@ -103,8 +101,23 @@ function NodeFrame(spacegraph) {
     return f;
 }
 
-function initFrameDrag() {
-    var nodeFrame = $('#nodeframe');
+function initFrameDrag(nodeFrame) {
+    var frameEle = $('#nodeframe');
+    
+    
+    var close = $('#nodeframe #close');
+    close.click(function() {
+        var node = frameEle.data('node');        
+        if (node) {
+            var space = node.cy();
+            
+            space.removeNode(node);            
+            
+            frameEle.data('node', null);
+            nodeFrame.hide();
+        }
+    });
+    
     var se = $('#nodeframe #resizeSE');
     $(function () {
         //$( "#draggable" ).draggable({ revert: true });
@@ -116,9 +129,9 @@ function initFrameDrag() {
             
             //http://api.jqueryui.com/draggable/#event-drag
             start: function (event, ui) {
-                var node = nodeFrame.data('node');
+                var node = frameEle.data('node');
                 
-                nodeFrame.data('resizing', true);
+                frameEle.data('resizing', true);
                 
                 var pos = node.position();
                 this.originalNode = node;
@@ -128,8 +141,8 @@ function initFrameDrag() {
             },
             drag: function (event, ui) {
 
-                var node = nodeFrame.data('node');
-                if (node!=this.originalNode)
+                var node = frameEle.data('node');
+                if (node!==this.originalNode)
                     return;
             
                 var dx = parseFloat(ui.offset.left - this.originalOffset[0]);
@@ -150,63 +163,14 @@ function initFrameDrag() {
                 node.css({
                         'width': w,
                         'height': h
-                });
-                
-                /*
-                node.animate({
-                    position: { x: x, y: y },
-                    css: { 
-                        'width': w,
-                        'height': h
-                    }
-                }, {
-                    duration: 0
-                });
-                */
-
-
-                /*setTimeout(function() {
-                    
-                    console.log(node);
-                    
-                    
-                }, 0);*/
-            
+                });               
             },
             stop: function (event, ui) {
                 
-                nodeFrame.data('resizing', false);
+                frameEle.data('resizing', false);
             }
 
         });
     });
-    /*
-     
-     se.pep({
-     shouldEase: false,
-     revert: true,
-     revertAfter: 'stop',
-     start: function() {
-     console.log(se);
-     notify('drag start: ' + JSON.stringify( se.position() ) );
-     },
-     stop: function() {
-     notify('drag stop: ' + JSON.stringify( se.position() ) );
-     
-     
-     
-     
-     se.css({
-     bottom: '-0px',
-     right: '-0px',               
-     'margin': '0px',
-     'top': '',
-     'left': '',
-     '-webkit-transform': '',
-     'transform': ''
-     });
-     }
-     });
-     */
 }
 

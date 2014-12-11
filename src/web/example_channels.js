@@ -21,7 +21,7 @@ function newExampleChannel1() {
                 'text-halign': 'center',
                 //'width': 'data(width)',
                 //'height': 'data(height)',
-                'shape': 'hexagon'
+                'shape': 'rectangle'
             },
             '$node > node': {
                 'padding-top': '2px',
