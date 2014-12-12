@@ -579,8 +579,9 @@ function spacegraph(ui, target, opt) {
                 var cy = 0.5 * (ex.y1 + ex.y2);
                 pos = {x: cx, y: cy};
             }
-            this.getElementById(n.id).position(pos);
             */
+            if (pos)
+                this.getElementById(n.id).position(pos);
 
             c.commit();
 

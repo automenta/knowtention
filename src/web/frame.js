@@ -6,7 +6,7 @@ function NodeFrame(spacegraph) {
         hovered: null
     };
     
-    $.get('frame.html', function(x) {               
+    $.get('frame.html', { "_": $.now() /* overrides cache */ }, function(x) {               
        
         $('#overlay').append( x );
 
@@ -189,9 +189,24 @@ function initFrameDrag(nodeFrame) {
 function newPopupMenu(s) {
     
     var prevMenu = null;
+
+        //hit background
+        //this.newNode(s.defaultChannel, 'text', e.cyPosition);    
+    var handler = {
+      
+        addText: function(position) {
+            s.newNode(s.defaultChannel, 'text', position);
+        },
+        
+        addURL: function(position) {
+            
+        }
+        
+    };
     
     s.on('click', function(e) {
         var target = e.cyTarget;
+        var position = e.cyPosition;
         
         
         if (target.isNode) {
@@ -209,15 +224,14 @@ function newPopupMenu(s) {
         var menu = prevMenu = $('#ContextPopup').clone();
         menu.appendTo('#overlay');
         menu.destroy = function() {
-            if (prevMenu == this)
+            if (prevMenu === this)
                 prevMenu = null;
             menu.fadeOut(function() {
                 menu.remove();
             });
         };
 
-        //hit background
-        //this.newNode(s.defaultChannel, 'text', e.cyPosition);
+
 
         //http://codepen.io/MarcMalignan/full/xlAgJ/
 
@@ -254,8 +268,12 @@ function newPopupMenu(s) {
                 }
             }
         });            
-        items.click(function() {
-            //action..
+        items.click(function(e) {
+            
+            var a = $(e.target).attr('action');
+            if (a && handler[a])
+                handler[a](position);
+
             menu.destroy();
         });
         closebutton.click(function() {

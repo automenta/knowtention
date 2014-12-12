@@ -49,27 +49,35 @@
         cursor: pointer;
         box-shadow: none;
         text-decoration: none;
+        opacity: 0.9;        
     }
-    
+
     .liCircle:hover {     
         color: white;
         background-color: #090;
         text-decoration: none;
+        opacity: 0.95;        
     }
     
-    #ContextPopup .closebutton {
+    
+    .closebutton {
         opacity: 0.7;
         background-color: #aaa;
     }
+    .closebutton:hover {
+        opacity: 0.9;
+        background-color: #999;
+    }    
+        
 </style>
     
 <div id="ContextPopup" class="widget" style="display: none">
     <a class="closebutton liCircle" href="#">X</a>
     <ul>
-        <li><a class="liCircle" href="#">A</a></li>
-        <li><a class="liCircle" href="#">B</a></li>
-        <li><a class="liCircle" href="#">C</a></li>
-        <li><a class="liCircle" href="#">D</a></li>
+        <li><a class="liCircle" href="#" action="addText">T</a></li>
+        <li><a class="liCircle" href="#" action="addURL">U</a></li>
+        <li><a class="liCircle" href="#">Dr</a></li>
+        <li><a class="liCircle" href="#">S</a></li>
         <li><a class="liCircle" href="#">E</a></li>
     </ul>
 </div>
