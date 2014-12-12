@@ -73,7 +73,7 @@ function UI(e) {
 
                 var type = $(this).data('type');
                 
-                space.newNode(c, type);
+                space.newNode(c, type, null, v.val());
 
             });
         }

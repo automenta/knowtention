@@ -91,11 +91,11 @@ function newExampleChannel1() {
                 },
                 widget: {
                     html: '<x-metawidget id="metawidget1" path="person"></x-metawidget>',
-                    style: {width: '300px', height: '260px'},
+                    style: {},
                     //html: '<iframe width="600px" height="600px" src="http://enenews.com"></iframe><br/><button>x</button>',
                     scale: 1,
+                    pixelScale: 300.0,
                     minPixels: 2,
-                    padding: 0.1
                 },
                 style: {
                     height: "24",
@@ -107,11 +107,10 @@ function newExampleChannel1() {
                 width: 64,
                 height: 64,
                 widget: {
-                    html: '<div style="background-color: orange; border: 2px solid black;"><div contenteditable="true" class="editable">WTF</div><br/><button>OK</button></div>',
-                    style: {width: '300px', height: '260px'},
-                    scale: 1.0,
-                    minPixels: 32,
-                    padding: 0.25
+                    html: '<div style="width: 100%; height: 100%; background-color: orange; border: 2px solid black;"><div contenteditable="true" class="editable">WTF</div><br/><button>OK</button></div>',
+                    style: {  },
+                    scale: 0.9,
+                    minPixels: 8,
                 }
             },
             {id: 'e1',
@@ -119,10 +118,9 @@ function newExampleChannel1() {
                 height: 64,
                 widget: {
                     html: '<div style="background-color: green; border: 2px solid black;"><div contenteditable="true" class="editable">OR(AND(F,B),Z) => X</div><br/><button>OK</button></div>',
-                    style: {width: '300px', height: '260px'},
-                    scale: 1,
-                    minPixels: 32,
-                    padding: 0.25
+                    style: {},
+                    scale: 0.9,
+                    minPixels: 16,
                 }
             }
             //{id: 'f', parent: 'e'}

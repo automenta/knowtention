@@ -68,8 +68,10 @@ public class LineFileChannel extends Runner {
 
                 long lastModified = file.lastModified();
                 long csize = channel.size();
-                if ((lastModified==lastLastModified) && (csize == lastSize)) //also check file update time?
+                if ((lastModified==lastLastModified) && (csize == lastSize)) { //also check file update time?
+                    fileInputStream.close();
                     continue;
+                }
                 
                 int currentPos = (int) csize;
                                 

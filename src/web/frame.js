@@ -15,8 +15,8 @@ function NodeFrame(spacegraph) {
         var frameVisible = false;
         var frameTimeToFade = 2000; //ms
         var frameHiding = -1;
-        var frameNodeScale = 1;
-        var frameNodeMargin = -0.25;
+        var frameNodePixelScale = 300;
+        var frameNodeScale = 1.25;
 
         initFrameDrag(f);
 
@@ -32,8 +32,11 @@ function NodeFrame(spacegraph) {
             var target = e.cyTarget;
             var over = (e.type !== "mouseout");
 
-            if (frameEle.data('resizing'))
-                over = true;                
+            if (frameEle.data('resizing')) {
+                target = frameEle.data('node');
+                frameEle.show();
+                over = true;    
+            }
 
             if (target && target.isNode && target.isNode()) {                
                 if (over || (f.hovered!==target)) {
@@ -88,7 +91,7 @@ function NodeFrame(spacegraph) {
             }
             
             if (currentlyVisible && f.hovered) {
-                spacegraph.positionNodeHTML(f.hovered, frameEle, frameNodeScale, frameNodeMargin);
+                spacegraph.positionNodeHTML(f.hovered, frameEle, frameNodePixelScale, frameNodeScale);
                 frameEle.data('node', f.hovered);
             }
 
@@ -131,13 +134,17 @@ function initFrameDrag(nodeFrame) {
             start: function (event, ui) {
                 var node = frameEle.data('node');
                 
-                frameEle.data('resizing', true);
+                if (!node)
+                    return;
                 
                 var pos = node.position();
                 if (!pos) {
                     console.error('node ', node, 'has no position');
                     return;
                 }
+                
+                frameEle.data('resizing', true);
+                                
                 this.originalNode = node;
                 this.originalPos = [ parseFloat(pos.x), parseFloat(pos.y) ];
                 this.originalSize = [ node.width(), node.height(), node.renderedWidth(), node.renderedHeight() ];

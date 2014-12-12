@@ -27,7 +27,6 @@ function spacegraph(ui, target, opt) {
                 if (widget(target))
                     queueWidgetUpdate(target);
                 
-                    
                 //console.log(this, that, target);
                 //that.commit();
             }
@@ -39,12 +38,7 @@ function spacegraph(ui, target, opt) {
         var frame = NodeFrame(this);
         
         
-        
 
-        
-        // ------------------------
-        
-        // zoom handler
 
         var widgetsToUpdate = {};
 
@@ -283,50 +277,46 @@ function spacegraph(ui, target, opt) {
             this.widgets.set(node, w[0]);
         }
 
-        this.positionNodeHTML(node, w, widget.scale, widget.padding, widget.minPixels);
+        this.positionNodeHTML(node, w, widget.pixelScale, widget.scale, widget.minPixels);
 
     };
 
     
     /** html=html dom element */
-    s.positionNodeHTML = function(node, html, scale, padding, minPixels) {
-        
-        /*if (!node.visible()) {
-            html.hide();
-            return;
-        }
-        else {
-            html.show();
-        }*/
+    s.positionNodeHTML = function(node, html, pixelScale, scale, minPixels) {
+
+        pixelScale = pixelScale || 128; //# pixels wide
 
         var pos = node.renderedPosition();
-        var pw = node.renderedWidth();
-        var ph = node.renderedHeight();
+        var pw = parseFloat(node.renderedWidth());
+        var ph = parseFloat(node.renderedHeight());
         
-        var paddingScale = (padding || 0);       
+        scale = scale || 1.0;
 
-        scale = scale || 1;
-        
-        var cw = html[0].clientWidth;
-        var ch = html[0].clientHeight;
-        if (cw === 0 || ch === 0) {
-            return;
+        var cw, ch;
+        if (pw < ph) {
+            cw = pixelScale;
+            ch = pixelScale*(ph/pw);
         }
+        else {
+            ch = pixelScale;
+            cw = pixelScale*(pw/ph);
+        }
+        html.css({
+            width:cw, height: ch
+        });
+                
+        //now get the effective clientwidth/height
+        cw = html[0].clientWidth;
+        ch = html[0].clientHeight;
         
+                
         var globalToLocalW = pw / cw;
         var globalToLocalH = ph / ch;
         
-        //var globalToLocal = Math.min(globalToLocalW, globalToLocalH);        
-        //var wx = scale * globalToLocal * (1.0 - paddingScale) ;
+        var wx = scale * globalToLocalW;
+        var wy = scale * globalToLocalH;
         
-        var wx = scale * globalToLocalW * (1.0 - paddingScale);
-        var wy = scale * globalToLocalH * (1.0 - paddingScale);
-        
-        var aspectRatio = false;
-        if (aspectRatio) {
-            wx = wy = Math.min(wx, wy);
-        }
-
                     
         //TODO check extents to determine node visibility for hiding off-screen HTML
         //for possible improved performance
@@ -334,8 +324,8 @@ function spacegraph(ui, target, opt) {
         var nextCSS = {};
         if (minPixels) {
             var hidden = 'none' === html.css('display');
-
-            if (/*wx < minPixels*/ false) {
+            
+            if ( Math.min(wy,wx) < minPixels/pixelScale ) {
                 if (!hidden) {
                     html.css({display: 'none'});
                     return;
@@ -356,8 +346,12 @@ function spacegraph(ui, target, opt) {
                 
         //parseInt here to reduce precision of numbers for constructing the matrix string
         //TODO replace this with direct matrix object construction involving no string ops        
-        px = parseInt(pos.x - pw / 2 + pw * paddingScale / 2.0); //'e' matrix element
-        py = parseInt(pos.y - ph / 2 + ph * paddingScale / 2.0); //'f' matrix element
+        
+        px = pos.x- (scale*pw) / 2.0;
+        py = pos.y- (scale*ph) / 2.0;
+        
+        //px = parseInt(pos.x - pw / 2.0 + pw * paddingScale / 2.0); //'e' matrix element
+        //py = parseInt(pos.y - ph / 2.0 + ph * paddingScale / 2.0); //'f' matrix element
         //px = pos.x;
         //py = pos.y;
         nextCSS['transform'] = 'matrix(' + mata + ',' + matb + ',' + matc + ',' + matd + ',' + px + ',' + py + ')';
@@ -501,7 +495,7 @@ function spacegraph(ui, target, opt) {
         }
     });
     
-    s.newNode = function(c, type, pos) {
+    s.newNode = function(c, type, pos, param) {
 
         notify('Adding: ' + type);
 
@@ -514,15 +508,14 @@ function spacegraph(ui, target, opt) {
                     height: 32
                 },
                 widget: {
-                    html: "<div contenteditable='true' class='editable' style='overflow: auto; resize: both; width: 100%; height: 100%;'></div>",
-                    scale: 1.0,
-                    style: {width: '300px', height: '150px'},
-                    padding: 0.1
+                    html: "<div contenteditable='true' class='editable' style='width: 100%; height: 100%; overflow:auto'></div>",
+                    scale: 0.85,
+                    style: {}
                 }
             };
         }
         else if (type === 'www') {
-            var uurrll = v.val();
+            var uurrll = param;
             if (!uurrll.indexOf('http://') === 0)
                 uurrll = 'http://' + uurrll;
 
@@ -533,10 +526,10 @@ function spacegraph(ui, target, opt) {
                     height: 64
                 },
                 widget: {
-                    html: '<iframe width="600px" height="600px" src="' + uurrll + '"></iframe>',
-                    scale: 1.0,
-                    style: {width: '600px', height: '600px'},
-                    padding: 0.1
+                    html: '<iframe _width="600px" _height="600px" src="' + uurrll + '"></iframe>',
+                    scale: 0.85,
+                    pixelScale: 600,
+                    style: {},
                 }
             };
         }
@@ -579,12 +572,22 @@ function spacegraph(ui, target, opt) {
     s.on('click', function(e) {
         var target = e.cyTarget;
         
+        
         if (target.isNode) {
             //hit an element (because its isNode function is defined)
         }
         else {
             //hit background
-            this.newNode(s.defaultChannel, 'text', e.cyPosition);
+            //this.newNode(s.defaultChannel, 'text', e.cyPosition);
+            
+            //http://codepen.io/MarcMalignan/full/xlAgJ/
+            var cx = e.cyPosition.x;
+            var cy = e.cyPosition.y;
+            $('#ContextPopup').css({
+                left: cx, 
+                top: cy 
+            });
+            $('#ContextPopup').fadeIn();
         }
     });    
 
