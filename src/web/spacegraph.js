@@ -1,6 +1,7 @@
 function spacegraph(ui, target, opt) {
     
     var commitPeriodMS = 500;
+    var widgetUpdatePeriodMS = 50;
     var suppressCommit = false;
     
     var ready = function() {
@@ -11,7 +12,11 @@ function spacegraph(ui, target, opt) {
                 
 
         //http://js.cytoscape.org/#events/collection-events
-        //
+        
+        this.on('layoutstop pan zoom', function (e) {
+            updateAllWidgets();            
+        });
+        
         this.on('data position select unselect add remove grab drag style', function (e) {
             
             if (suppressCommit)
@@ -66,13 +71,16 @@ function spacegraph(ui, target, opt) {
         };
 
         function widget(node) {
-            return node.data().widget;
+            if (node.data)
+                return node.data().widget;
+            return undefined;
         }
 
         function queueWidgetUpdate(node) {
             widgetsToUpdate[node.id()] = node;
         }
 
+        
         var that = this;
         var updateWidgets = this.updateWidgets = _.throttle(function () {
 
@@ -91,9 +99,16 @@ function spacegraph(ui, target, opt) {
                 }, 0);
             }
 
-        }, 10);
+        }, widgetUpdatePeriodMS);
 
         
+        var updateAllWidgets = _.throttle(function() {
+            that.nodes().each(function(y,x) {                
+               if (widget(x)) {
+                   that.updateNodeWidget(x);
+               }
+            });
+        }, widgetUpdatePeriodMS);
 
         
 
