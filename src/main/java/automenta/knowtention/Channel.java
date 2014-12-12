@@ -10,15 +10,18 @@ import com.github.fge.jsonpatch.JsonPatchException;
 import com.github.fge.jsonpatch.diff.JsonDiff;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Iterator;
 
 /**
  * Holds working data in the form of a JSON symbol tree
  * @see https://github.com/fge/json-patch
  */
-public class Channel extends EventEmitter implements Serializable {
+public class Channel extends EventEmitter implements Serializable, Iterable<JsonNode> {
     
     private JsonNode prev;
     private boolean inTransaction;
+
+
 
     
     public abstract static class ChannelChange implements EventObserver {  
@@ -97,13 +100,32 @@ public class Channel extends EventEmitter implements Serializable {
         if (!get().has("nodes")) {
             get().put("nodes", Core.newJson.arrayNode());
         }
-            
+        
         ArrayNode node = (ArrayNode) get().get("nodes");
+        
+        if (!vertex.has("id")) {
+            vertex.put("id", Core.uuid());
+        }
+        
+        removeVertex(vertex.get("id").asText());
+        
         node.add(vertex);
         
         commit();
         return true;
     }
+    
+    /** wont be necessary if vertex is changed to objectnode, not array */
+    @Deprecated protected void removeVertex(String id) {
+        ArrayNode node = (ArrayNode) get().get("nodes");
+        for (int i = 0; i < node.size(); i++) {
+            JsonNode v = node.get(i);
+            if (v.get("id").asText().equals(id)) {
+                node.remove(i);
+                break;
+            }
+        }
+    }    
     
     public void addEdge(ObjectNode edge) {
         
@@ -155,5 +177,11 @@ public class Channel extends EventEmitter implements Serializable {
         
         emitChange(patch);
     }
+
+    @Override
+    public Iterator<JsonNode> iterator() {
+        return get().iterator();
+    }
+    
     
 }

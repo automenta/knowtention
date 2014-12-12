@@ -27,6 +27,7 @@ public class Core extends EventEmitter {
 
 
 
+
     final Map<String, Channel> channels = new HashMap();
     
     public Core() {
@@ -184,5 +185,8 @@ public class Core extends EventEmitter {
         return JsonPatch.fromJson(patch);
     }
 
+    public static String uuid() {
+        return UUID.randomUUID().toString();
+    }
     
 }

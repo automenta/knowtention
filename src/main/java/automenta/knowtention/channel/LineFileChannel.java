@@ -6,15 +6,12 @@
 package automenta.knowtention.channel;
 
 import automenta.knowtention.Channel;
-import automenta.knowtention.Channel.ChannelChange;
 import automenta.knowtention.Core;
 import automenta.knowtention.Runner;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -29,14 +26,16 @@ import java.util.logging.Logger;
  */
 public class LineFileChannel extends Runner {
 
+    final String id;
     long delayPeriodMS = 1000;
     private final File file;
     private boolean running = true;
     int numLines = 3;
     Channel channel;
 
-    public LineFileChannel(Channel c, String filename) {        
+    public LineFileChannel(String id, Channel c, String filename) {        
         this.channel = c;
+        this.id = id;
         this.file = new File(filename);
     }
 
@@ -167,30 +166,27 @@ public class LineFileChannel extends Runner {
 //        System.out.println(getSnapshot());
     }
 
-    public Thread start() {
-        Thread t = new Thread(this);
-        t.start();
-        return t;
-    }
 
     private synchronized void update(List<String> lines) {
-        //long now = System.currentTimeMillis();
+        
         
         channel.tx(new Runnable() {
-            @Override public void run() {
-                for (int i = 0; i < lines.size(); i++) {
-                    String currentLine = lines.get(i);
+            @Override public void run() {                
+                
+                ArrayNode l = Core.newJson.arrayNode();
+                
+                for (int i = 0; i < lines.size(); i++)
+                    l.add(lines.get(i));
+                
+                ObjectNode o = Core.newJson.objectNode();
+                o.put("id", id );
+                //o.put("content", (file.getAbsolutePath() + ":" + getClass().getSimpleName()) );
+                o.put("list", l);        
+                channel.addVertex(o);        
 
-
-                    channel.addVertex(
-                            Core.newJson.objectNode().
-                                    put("id", channel.id + "_" + (currentLine.hashCode())).
-                                    put("content", currentLine)
-                    );
-                }
             }            
         });
-
+        
     }
 
 }

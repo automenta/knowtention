@@ -67,7 +67,7 @@ function Websocket(conn) {
             }
             else {
                 chan.data = channelData;
-                s.addChannel(chan);
+                s.updateChannel(chan);
             }
         },
         'channel.patch': function(d) {

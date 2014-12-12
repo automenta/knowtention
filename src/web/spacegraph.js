@@ -8,8 +8,7 @@ function spacegraph(ui, target, opt) {
 
         var that = this;
         
-        opt.start(this);
-                
+        opt.start.apply(this);                
 
         //http://js.cytoscape.org/#events/collection-events
         
@@ -227,6 +226,10 @@ function spacegraph(ui, target, opt) {
         return w;
     }
 
+    s.removeNodeWidget = function(node) {
+        $('#widget_' + node.id()).remove();                
+        this.widgets.delete(node);
+    };
     
     s.updateNodeWidget = function(node) {
         var widget = node.data().widget; //html string
@@ -236,9 +239,7 @@ function spacegraph(ui, target, opt) {
         
         if (node.data().removed) {
             if (wEle) {
-                $('#widget_' + node.id()).remove();
-                
-                this.widgets.delete(node);
+                this.removeNodeWidget(node);
             }
             return;
         }
@@ -373,6 +374,13 @@ function spacegraph(ui, target, opt) {
         html.css(nextCSS);        
     };
     
+    s.nodeProcessor = [];
+    
+    s.updateNode = function(n) {
+        for (var i = 0; i < this.nodeProcessor.length; i++)
+            s.nodeProcessor[i].apply(n);
+    };
+    
     s.updateChannel = function(c) {
         
         
@@ -422,13 +430,20 @@ function spacegraph(ui, target, opt) {
                 var n = e.nodes[i];
                 if (n.data && n.data.id) {
                     var nn = that.nodes('#' + n.data.id);
+                    
+                    that.updateNode(nn);
+
                     var ep = nn.position();
-                    if (!ep || !ep.x)
-                        nn.position({ x: 0, y: 0 });
+                    if (!ep || !ep.x) {
+                        var ex = that.extent();
+                        var cx = 0.5 * (ex.x1 + ex.x2);
+                        var cy = 0.5 * (ex.y1 + ex.y2);
+
+                        nn.position({ x: cx, y: cy });                        
+                    }
                 }                    
             }
             
-
             that.resize();
 
             suppressCommit = false;
@@ -557,6 +572,7 @@ function spacegraph(ui, target, opt) {
             
             this.updateChannel(c);
 
+            /*
             if (!pos) {
                 var ex = this.extent();
                 var cx = 0.5 * (ex.x1 + ex.x2);
@@ -564,6 +580,7 @@ function spacegraph(ui, target, opt) {
                 pos = {x: cx, y: cy};
             }
             this.getElementById(n.id).position(pos);
+            */
 
             c.commit();
 
@@ -584,62 +601,6 @@ function spacegraph(ui, target, opt) {
     };
     
     
-    s.on('click', function(e) {
-        var target = e.cyTarget;
-        
-        
-        if (target.isNode) {
-            //hit an element (because its isNode function is defined)
-        }
-        else {
-            //hit background
-            //this.newNode(s.defaultChannel, 'text', e.cyPosition);
-            
-            //http://codepen.io/MarcMalignan/full/xlAgJ/
-            
-            var radius = 70.0;
-
-            var cx = e.originalEvent.clientX - radius/2.0;
-            var cy = e.originalEvent.clientY - radius/2.0;
-            
-            var items = $('#ContextPopup').find('li');
-            
-            var closebutton = $('#ContextPopup .closebutton');
-            closebutton.unbind();
-            items.unbind();
-            
-            items.css({ left: 0, top: 0 }); 
-            $('#ContextPopup').hide().css({
-                left: cx, 
-                top: cy,
-                opacity: 0.0,
-                display: 'block'
-            }).animate({
-                opacity: 1.0
-            }, {
-                duration: 1000,
-                step: function( now, fx ){
-                    for (var i = 0; i < items.length; i++) {
-                        var a = (i / (items.length)) * Math.PI * 2.0;
-                        a += now;
-                        var x = Math.cos(a) * now * radius;
-                        var y = Math.sin(a) * now * radius;
-                        $(items[i]).css({
-                           left: x, top: y 
-                        });
-                    }
-                }
-            });            
-            items.click(function() {
-                //action..
-                $('#ContextPopup').hide();
-            });
-            closebutton.click(function() {
-                $('#ContextPopup').hide();
-            });
-    
-        }
-    });    
 
     s.zoomTo = function(ele) {
         var pos;

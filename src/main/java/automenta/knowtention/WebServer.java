@@ -64,8 +64,8 @@ public class WebServer {
         WebServer w = new WebServer(new Core(), host, port);
         
         
-        new Thread(
-                new LineFileChannel(w.core.getChannel("chat"), "/home/me/.xchat2/scrollback/FreeNode/#netention.txt") ).start();
+        
+        new LineFileChannel("chat_netention", w.core.getChannel("chat"), "/home/me/.xchat2/scrollback/FreeNode/#netention.txt").start();
     }
 
 }

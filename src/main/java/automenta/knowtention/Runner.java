@@ -11,6 +11,11 @@ package automenta.knowtention;
  */
 abstract public class Runner implements Runnable {
 
+    public Thread start() {
+        Thread t = new Thread(this);
+        t.start();
+        return t;
+    }
     
     
 }

@@ -39,11 +39,12 @@
         <script src="ui.js"></script>
         <script src="spacegraph.js"></script>
         <script src="frame.js"></script>
+        <script src="node.js"></script>
         
         <script src="example_channels.js"></script>
 
         <link type="text/css" rel="stylesheet" href="spacegraph.css"/>
-        <link type="text/css" rel="stylesheet" href="spacegraph.bright.css"/>
+        <link type="text/css" rel="stylesheet" href="spacegraph.dark.css"/>
 
     </head>
     <body>
@@ -104,11 +105,15 @@
                     var s = window.s = spacegraph(ui, $('#graph'), {
                         start: function() { 
 
-                            server.on('index', s.addChannel);
-                            server.on('chat', s.addChannel);
+                            server.on('index', this.addChannel);
+                            server.on('chat', this.addChannel);
 
+                            newPopupMenu(this);
                         }            
                     });
+                    
+                    s.nodeProcessor.push(new ListToText());
+                    s.nodeProcessor.push(new UrlToIFrame());
 
                     s.addChannel(new Channel( newExampleChannel1(), server));
 

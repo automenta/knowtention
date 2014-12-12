@@ -185,3 +185,83 @@ function initFrameDrag(nodeFrame) {
     });
 }
 
+
+function newPopupMenu(s) {
+    
+    var prevMenu = null;
+    
+    s.on('click', function(e) {
+        var target = e.cyTarget;
+        
+        
+        if (target.isNode) {
+            //hit an element (because its isNode function is defined)
+            return;
+        }
+        
+        if (prevMenu) {
+            //click to remove existing one, then click again to popup again
+            prevMenu.destroy();
+            prevMenu = null;
+            return;
+        }
+        
+        var menu = prevMenu = $('#ContextPopup').clone();
+        menu.appendTo('#overlay');
+        menu.destroy = function() {
+            if (prevMenu == this)
+                prevMenu = null;
+            menu.fadeOut(function() {
+                menu.remove();
+            });
+        };
+
+        //hit background
+        //this.newNode(s.defaultChannel, 'text', e.cyPosition);
+
+        //http://codepen.io/MarcMalignan/full/xlAgJ/
+
+        var radius = 70.0;
+
+        var cx = e.originalEvent.clientX - radius/2.0;
+        var cy = e.originalEvent.clientY - radius/2.0;
+
+        var items = menu.find('li');
+
+        var closebutton = menu.find('.closebutton');
+        closebutton.unbind();
+        items.unbind();
+
+        items.css({ left: 0, top: 0 }); 
+        menu.hide().css({
+            left: cx, 
+            top: cy,
+            opacity: 0.0,
+            display: 'block'
+        }).animate({
+            opacity: 1.0
+        }, {
+            duration: 1000,
+            step: function( now, fx ){
+                for (var i = 0; i < items.length; i++) {
+                    var a = (i / (items.length)) * Math.PI * 2.0;
+                    a += now;
+                    var x = Math.cos(a) * now * radius;
+                    var y = Math.sin(a) * now * radius;
+                    $(items[i]).css({
+                       left: x, top: y 
+                    });
+                }
+            }
+        });            
+        items.click(function() {
+            //action..
+            menu.destroy();
+        });
+        closebutton.click(function() {
+            menu.destroy();
+        });
+    
+    });    
+    
+}

@@ -1,7 +1,7 @@
 var person = {
-    firstname: 'Jane',
-    surname: 'Doe',
-    age: 32,
+    firstname: 'First',
+    surname: 'Last',
+    age: 0,
 
     save: function (e) {
         document.getElementById('metawidget1').save();
@@ -82,9 +82,9 @@ function newExampleChannel1() {
             {id: 'd',
                 form: {
                     value: {
-                        firstname: 'Jane',
-                        surname: 'Doe',
-                        age: 32
+                        firstname: 'First',
+                        surname: 'Last',
+                        age: 0
                     },
                     style: {width: '300px', height: '260px'},
                     scale: 1
@@ -103,6 +103,8 @@ function newExampleChannel1() {
                     opacity: 0.75
                 }
             },
+            {id: 'u', 
+                width: 48, height: 32, url: 'http://_wikipedia.org' },
             {id: 'e',
                 width: 64,
                 height: 64,
