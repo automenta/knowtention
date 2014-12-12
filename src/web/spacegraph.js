@@ -526,7 +526,7 @@ function spacegraph(ui, target, opt) {
                     height: 64
                 },
                 widget: {
-                    html: '<iframe _width="600px" _height="600px" src="' + uurrll + '"></iframe>',
+                    html: '<iframe width="100%" height="100%" src="' + uurrll + '"></iframe>',
                     scale: 0.85,
                     pixelScale: 600,
                     style: {},
