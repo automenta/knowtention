@@ -15,14 +15,14 @@ body nav {
 .ui-pnotify {
     z-index: 2000;
 }
-#graph, #widgets {
+#graph, #widgets, #overlay {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;                    
 }
-#widgets {
+#widgets, #overlay {
     pointer-events: none;    
 }
 .widget {
@@ -39,5 +39,7 @@ body nav {
     transform-origin: 0 0;
     display: none;
 }
-
+#overlay {
+    z-index: 5000;
+}
 	

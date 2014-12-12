@@ -581,13 +581,48 @@ function spacegraph(ui, target, opt) {
             //this.newNode(s.defaultChannel, 'text', e.cyPosition);
             
             //http://codepen.io/MarcMalignan/full/xlAgJ/
-            var cx = e.cyPosition.x;
-            var cy = e.cyPosition.y;
-            $('#ContextPopup').css({
+            
+            var radius = 70.0;
+
+            var cx = e.originalEvent.clientX - radius/2.0;
+            var cy = e.originalEvent.clientY - radius/2.0;
+            
+            var items = $('#ContextPopup').find('li');
+            
+            var closebutton = $('#ContextPopup .closebutton');
+            closebutton.unbind();
+            items.unbind();
+            
+            items.css({ left: 0, top: 0 }); 
+            $('#ContextPopup').hide().css({
                 left: cx, 
-                top: cy 
+                top: cy,
+                opacity: 0.0,
+                display: 'block'
+            }).animate({
+                opacity: 1.0
+            }, {
+                duration: 1000,
+                step: function( now, fx ){
+                    for (var i = 0; i < items.length; i++) {
+                        var a = (i / (items.length)) * Math.PI * 2.0;
+                        a += now;
+                        var x = Math.cos(a) * now * radius;
+                        var y = Math.sin(a) * now * radius;
+                        $(items[i]).css({
+                           left: x, top: y 
+                        });
+                    }
+                }
+            });            
+            items.click(function() {
+                //action..
+                $('#ContextPopup').hide();
             });
-            $('#ContextPopup').fadeIn();
+            closebutton.click(function() {
+                $('#ContextPopup').hide();
+            });
+    
         }
     });    
 

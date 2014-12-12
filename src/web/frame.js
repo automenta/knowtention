@@ -8,7 +8,7 @@ function NodeFrame(spacegraph) {
     
     $.get('frame.html', function(x) {               
        
-        $('#widgets').append( x );
+        $('#overlay').append( x );
 
         var frameEle = $('#nodeframe');
         f.hovered = null;

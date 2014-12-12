@@ -25,21 +25,85 @@
 
 <style>
     #ContextPopup {
+        z-index: 5000;
         position: fixed;        
+        opacity: 0.9;
     }
     #ContextPopup ul {
         list-style: none;
     }
+    #ContextPopup li, #ContextPopup a {
+        position: absolute;
+    }
     
+    .liCircle {
+        color: white;
+        width: 50px;
+        height: 50px;
+        margin-left: 0;
+        background-color: #00f;
+        border-radius: 50%;
+        text-align: center;
+        font-size: 30px;
+        overflow: hidden;
+        cursor: pointer;
+        box-shadow: none;
+        text-decoration: none;
+    }
+    
+    .liCircle:hover {     
+        color: white;
+        background-color: #090;
+        text-decoration: none;
+    }
+    
+    #ContextPopup .closebutton {
+        opacity: 0.7;
+        background-color: #aaa;
+    }
 </style>
     
-<div id="ContextPopup" style="display: none">
+<div id="ContextPopup" class="widget" style="display: none">
+    <a class="closebutton liCircle" href="#">X</a>
     <ul>
-        <li><a href="#">A</a></li>
-        <li><a href="#">B</a></li>
-        <li><a href="#">C</a></li>
-        <li><a href="#">D</a></li>
+        <li><a class="liCircle" href="#">A</a></li>
+        <li><a class="liCircle" href="#">B</a></li>
+        <li><a class="liCircle" href="#">C</a></li>
+        <li><a class="liCircle" href="#">D</a></li>
+        <li><a class="liCircle" href="#">E</a></li>
     </ul>
-    <button>X</button>
 </div>
 
+<style>
+/* Outline Inward */
+.outline-inward {
+  display: inline-block;
+  position: absolute;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+  box-shadow: 0 0 1px rgba(0, 0, 0, 0);
+}
+.outline-inward:before {
+  content: '';
+  position: absolute;
+  border: #e1e1e1 solid 2px;
+  top: -10px;
+  right: -10px;
+  bottom: -10px;
+  left: -10px;
+  opacity: 0.9;
+  -webkit-transition-duration: 1.5s;
+  transition-duration: 1.5s;
+  -webkit-transition-property: top, right, bottom, left;
+  transition-property: top, right, bottom, left;
+}
+.outline-inward:hover:before, .outline-inward:focus:before, .outline-inward:active:before {
+  top: -200px;
+  right: -200px;
+  bottom: -200px;
+  left: -200px;
+  opacity: 0;
+}
+
+    
+</style>
